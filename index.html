@@ -57,7 +57,7 @@
   .chip.total .dot{background:#a3e635}
   .chip.paid .dot{background:#22c55e}
   .chip.unpaid .dot{background:#ef4444}
-  .chip .lab{font-size:12px;color:#aeb7c2}
+  .chip .lab{font-size:12px;color:var(--muted)}
   .chip .num{font-size:13px;color:#fff;min-width:16px;text-align:right}
 
   /* 結果列表 */
@@ -211,7 +211,7 @@
   .fab{
     padding:10px 12px;
     border-radius:12px;
-    border:1px solid var(--border);
+    border:1px solid(var(--border));
     background:#0f1117;
     color:#e5e7eb;
     font-weight:800;
@@ -231,6 +231,17 @@
     .row{grid-template-columns:1fr}
     .fabrow{justify-content:flex-start}
   }
+
+  /* === [SCAN] 最小掃描狀態列（可停用掃描；不干擾版面） === */
+  .scanbar{
+    position:fixed; right:12px; bottom:12px; z-index:45;
+    display:none; align-items:center; gap:8px;
+    background:#0f1117; border:1px solid #2b3244; border-radius:999px; padding:6px 10px;
+  }
+  .scanbar .txt{font-size:12px; color:#C7CED6}
+  .scanbar .dot{width:8px; height:8px; border-radius:50%; background:#22c55e; box-shadow:0 0 8px rgba(34,197,94,.6)}
+  .scanbar .btn-mini{padding:4px 8px; font-size:12px; border-radius:8px; border:1px solid #2b3244; background:#0f1117; color:#e5e7eb; cursor:pointer}
+  .scanbar .btn-mini:hover{border-image:var(--rainbow) 1; border-width:1px; border-style:solid}
 </style>
 </head>
 <body>
@@ -285,7 +296,7 @@
   <div id="ovSection" class="ov-section">
     <div class="leader-head" style="margin-bottom:6px">
       <div class="leader-name overview">總覽 / Overview</div>
-      <div class="leader-meta" id="ovHint">依 Leader 分組 · Grouped by Leader</div>
+      <div class="leader-meta" id="ovHint">By Leader</div>
       <button id="btnOvHide" class="leader-toggle" title="隱藏總覽">隱藏 / Hide</button>
     </div>
     <div id="leaderGrid" class="leader-grid"></div>
@@ -326,6 +337,13 @@
 <!-- 隱藏的檔案 input 供「QR 圖片備援」 -->
 <input id="qrFile" type="file" accept="image/*" style="display:none" />
 
+<!-- === [SCAN] 極小掃描狀態列（可停止） -->
+<div id="scanBar" class="scanbar">
+  <span class="dot" aria-hidden="true"></span>
+  <span class="txt">掃描中… 將 QR 對準鏡頭</span>
+  <button id="scanStop" class="btn-mini">停止</button>
+</div>
+
 <!-- Toast -->
 <div id="toast" class="toast"></div>
 
@@ -334,6 +352,9 @@
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyBxgEbiY2mnsfIX7CXj1q1poEIAbxa8qHo-ZDU09h9IzxDMyHYEDtYtzXdC9wK830j/exec';
 const PAY_PASSWORD = '05140714';
 
+/* ✅ 是否啟用送出時密碼驗證（暫時關閉就設 false；要再開啟改 true） */
+const ENABLE_PAY_PASSWORD = false;
+
 /* ===== (2) 狀態 ===== */
 const state = {
   rows: [],          // 雲端 roster
@@ -341,6 +362,16 @@ const state = {
   selected: null,    // 付款彈窗選中的人
   chosenPay: null,   // 'paid' / 'unpaid'
   ovHidden: false,   // 概覽是否收合
+
+  // === [SCAN] 連續掃描狀態（同機只授權一次）
+  scan: {
+    detector: null,
+    stream: null,
+    video: null,
+    rafId: null,
+    active: false,   // 是否已啟動掃描迴圈
+    paused: false    // 彈窗開啟時暫停
+  }
 };
 
 const hiddenLeaders = new Set();
@@ -496,7 +527,12 @@ function buildPay(status, iconsOnly=false){
 /* ===== (7) 付款彈窗：flag/name/ig/pay_status（name/ig 金色漸層） ===== */
 const payBackdrop = $('payBackdrop');
 const paySubmit = $('paySubmit');
-$('payClose').addEventListener('click', ()=> { payBackdrop.style.display='none'; state.chosenPay=null; setOptActive(null); });
+$('payClose').addEventListener('click', ()=> { 
+  payBackdrop.style.display='none'; 
+  state.chosenPay=null; 
+  setOptActive(null); 
+  resumeScan(); // === [SCAN] 關閉後恢復掃描
+});
 $('optPaid').addEventListener('click', ()=> setOptActive('paid'));
 $('optUnpaid').addEventListener('click', ()=> setOptActive('unpaid'));
 
@@ -510,6 +546,7 @@ function setOptActive(val){
 function openPayModal(person){
   state.selected = person;
   setOptActive(null);
+  pauseScan(); // === [SCAN] 開啟彈窗時暫停掃描（不關相機）
   const gold = (s)=> `<b class="goldtext">${escapeHtml(s||'—')}</b>`;
   const html = `
     <div>國旗 / Flag：<b>${escapeHtml(person.flag||'—')}</b></div>
@@ -525,14 +562,47 @@ function escapeHtml(s){
   return (s||'').toString().replace(/[&<>\"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;' })[m]);
 }
 
+/* ===== 送出付款更新：可切換密碼驗證 + 送出中轉圈 ===== */
 paySubmit.addEventListener('click', async ()=>{
-  if(!state.selected){ payBackdrop.style.display='none'; return; }
-  if(!state.chosenPay){ showToast('請選擇「已付款或未付款」'); return; }
-  // 密碼保護
-  const p = prompt('請輸入付款更新密碼 / Enter password');
-  if(p === null) return;
-  if(p !== PAY_PASSWORD){ showToast('密碼錯誤 / Wrong password'); return; }
-  await updatePay(state.chosenPay);
+  if(!state.selected){ 
+    payBackdrop.style.display='none'; 
+    resumeScan(); // === [SCAN]
+    return; 
+  }
+  if(!state.chosenPay){ 
+    showToast('請選擇「已付款或未付款」'); 
+    return; 
+  }
+
+  // 🔐（可選）密碼保護：依旗標決定是否詢問
+  if (ENABLE_PAY_PASSWORD) {
+    const p = prompt('請輸入付款更新密碼 / Enter password');
+    if(p === null) return;
+    if(p !== PAY_PASSWORD){ 
+      showToast('密碼錯誤 / Wrong password'); 
+      return; 
+    }
+  }
+
+  // ⏳ 送出中 UI：禁用按鈕 + 顯示 spinner
+  const prevHtml = paySubmit.innerHTML;
+  paySubmit.disabled = true;
+  paySubmit.innerHTML = '送出中… <span class="spinner" aria-hidden="true"></span>';
+
+  try{
+    await updatePay(state.chosenPay);
+  }catch(e){
+    console.error(e);
+    showToast('更新失敗 / Update failed');
+  }finally{
+    // 還原按鈕與狀態
+    paySubmit.disabled = false;
+    paySubmit.innerHTML = prevHtml;
+    state.chosenPay = null;
+    setOptActive(null);
+    payBackdrop.style.display = 'none';
+    resumeScan(); // === [SCAN] 送出後自動回到掃描
+  }
 });
 
 async function updatePay(val){
@@ -543,10 +613,8 @@ async function updatePay(val){
     if(!ok) throw new Error('SERVER_NOK');
     // 同步本地
     person.pay_status = val;
-    const local = state.indexByItem.get(String(person.item||''));
-    if(local) local.pay_status = val;
+    const local = state.indexByItem.get(String(person.item||'')); if(local) local.pay_status = val;
     renderStats();
-    // 如仍有列表，刷新提示
     manualSearch();
     renderOverview();
     showToast('已更新付款狀態 / Payment updated');
@@ -554,9 +622,7 @@ async function updatePay(val){
     console.error(e);
     showToast('更新失敗 / Update failed');
   }finally{
-    payBackdrop.style.display='none';
-    state.chosenPay=null;
-    setOptActive(null);
+    state.selected = null;
   }
 }
 
@@ -643,7 +709,6 @@ function renderOverview(){
         leftM.append(flag,nm,ig);
 
         const rightM = document.createElement('div'); rightM.style.display='flex'; rightM.style.gap='8px';
-        // 列表中的圖示要顯示中英文
         rightM.append(buildPay(m.pay_status, false));
 
         line.append(leftM,rightM);
@@ -682,62 +747,143 @@ function renderHiddenBar(){
 }
 $('ovUnhideAll')?.addEventListener('click', ()=>{ hiddenLeaders.clear(); renderOverview(); renderHiddenBar(); });
 
-/* ===== (9) 掃描 QR（BarcodeDetector；備援：上傳 QR 圖片） → 直接彈窗 ===== */
+/* ===== (9) 掃描 QR（改為長駐：一次授權，反覆掃） ===== */
 $('btnScan').addEventListener('click', startScan);
+$('scanStop').addEventListener('click', stopScan);
 
-async function startScan(){
-  const supported = ('BarcodeDetector' in window);
-  if(supported){
-    try{
-      const detector = new window.BarcodeDetector({ formats:['qr_code'] });
-      const stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'environment' }});
-      const video = document.createElement('video'); video.playsInline = true; video.srcObject = stream; await video.play();
-
-      const tick = async ()=>{
-        if(video.readyState >= 2){
-          const bitmap = await createImageBitmap(video);
-          const codes = await detector.detect(bitmap);
-          bitmap.close();
-          if(codes && codes.length){
-            await stopStream(stream);
-            const item = (codes[0].rawValue||'').trim();
-            handleScanItem(item);
-            return;
-          }
-        }
-        requestAnimationFrame(tick);
-      };
-      tick();
-      showToast('掃描中… 將 QR 對準鏡頭 / Scanning…');
-      return;
-    }catch(e){ console.warn('BarcodeDetector video path failed, fallback to file', e); }
+async function ensureDetector(){
+  if(state.scan.detector) return state.scan.detector;
+  if(!('BarcodeDetector' in window)){ 
+    showToast('此裝置不支援原生 QR 解析，請改用「圖片上傳」備援');
+    return null;
   }
-  // 備援：上傳圖片→detect
-  const input = $('qrFile');
-  input.onchange = async (e)=>{
-    const f = (e.target.files||[])[0];
-    if(!f){ showToast('未選取圖片 / No image selected'); return; }
-    try{
-      if(!('BarcodeDetector' in window)) throw new Error('no-detector');
-      const detector = new window.BarcodeDetector({ formats:['qr_code'] });
-      const bmp = await createImageBitmap(f);
-      const codes = await detector.detect(bmp);
-      bmp.close();
-      if(codes && codes.length){ handleScanItem((codes[0].rawValue||'').trim()); }
-      else{ showToast('解析失敗，請改用手動查找 / Parse failed, use manual search'); }
-    }catch(err){ console.warn(err); showToast('裝置不支援 QR 解析；請改用手動查找 / Not supported, use manual search'); }
-    finally{ input.value=''; }
-  };
-  input.click();
+  try{
+    state.scan.detector = new window.BarcodeDetector({ formats:['qr_code'] });
+    return state.scan.detector;
+  }catch(e){
+    console.warn('BarcodeDetector init failed', e);
+    return null;
+  }
 }
 
-async function stopStream(stream){ try{ stream.getTracks().forEach(t=>t.stop()); }catch(_){}}
+async function ensureCamera(){
+  if(state.scan.stream) return state.scan.stream;
+  // 只請求一次相機權限
+  state.scan.stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'environment' }});
+  // 建立隱藏 video（不影響版面；保留串流）
+  if(!state.scan.video){
+    const v = document.createElement('video');
+    v.playsInline = true; v.muted = true; v.setAttribute('muted', ''); // iOS 相容
+    v.style.position='fixed'; v.style.left='-9999px'; v.style.top='-9999px';
+    v.srcObject = state.scan.stream;
+    await v.play();
+    state.scan.video = v;
+  }else{
+    state.scan.video.srcObject = state.scan.stream;
+    await state.scan.video.play();
+  }
+  return state.scan.stream;
+}
 
+async function startScan(){
+  const detector = await ensureDetector();
+  if(!detector){
+    // 備援：上傳圖片→detect（沿用你原本的備援）
+    const input = $('qrFile');
+    input.onchange = async (e)=>{
+      const f = (e.target.files||[])[0];
+      if(!f){ showToast('未選取圖片 / No image selected'); return; }
+      try{
+        const det2 = await ensureDetector();
+        if(!det2) throw new Error('no-detector');
+        const bmp = await createImageBitmap(f);
+        const codes = await det2.detect(bmp);
+        bmp.close();
+        if(codes && codes.length){ handleScanItem((codes[0].rawValue||'').trim()); }
+        else{ showToast('解析失敗，請改用手動查找 / Parse failed, use manual search'); }
+      }catch(err){ console.warn(err); showToast('裝置不支援 QR 解析；請改用手動查找 / Not supported, use manual search'); }
+      finally{ input.value=''; }
+    };
+    input.click();
+    return;
+  }
+
+  try{
+    await ensureCamera();
+  }catch(e){
+    console.warn('camera open failed', e);
+    showToast('無法開啟相機，請檢查權限或改用手動查找');
+    return;
+  }
+
+  $('scanBar').style.display='flex';
+  if(state.scan.active){
+    // 已在掃描，只需解除暫停
+    state.scan.paused = false;
+    return;
+  }
+
+  state.scan.active = true;
+  state.scan.paused = false;
+
+  const tick = async ()=>{
+    if(!state.scan.active){ return; }
+    if(state.scan.paused){ state.scan.rafId = requestAnimationFrame(tick); return; }
+    try{
+      // 直接讀取當前畫面
+      if(state.scan.video && state.scan.video.readyState >= 2){
+        const bitmap = await createImageBitmap(state.scan.video);
+        const codes = await state.scan.detector.detect(bitmap);
+        bitmap.close();
+        if(codes && codes.length){
+          const item = (codes[0].rawValue||'').trim();
+          if(item){
+            // 進入處理（會開彈窗並暫停掃描）
+            handleScanItem(item);
+          }
+        }
+      }
+    }catch(e){ /* 忽略暫時錯誤，繼續掃 */ }
+    state.scan.rafId = requestAnimationFrame(tick);
+  };
+  state.scan.rafId = requestAnimationFrame(tick);
+}
+
+function pauseScan(){
+  state.scan.paused = true;
+}
+
+function resumeScan(){
+  if(!state.scan.stream || !state.scan.active) return;
+  state.scan.paused = false;
+  $('scanBar').style.display='flex';
+}
+
+function stopScan(){
+  state.scan.paused = true;
+  state.scan.active = false;
+  $('scanBar').style.display='none';
+  if(state.scan.rafId){ cancelAnimationFrame(state.scan.rafId); state.scan.rafId = null; }
+  try{
+    if(state.scan.stream){ state.scan.stream.getTracks().forEach(t=>t.stop()); }
+  }catch(_){}
+  state.scan.stream = null;
+  if(state.scan.video){
+    try{ state.scan.video.pause(); state.scan.video.srcObject = null; }catch(_){}
+  }
+}
+
+/* 舊的單次掃描備援仍保留（當不支援時觸發），handleScanItem 改成續掃模式 */
 function handleScanItem(itemStr){
   if(!itemStr){ showToast('QR 無內容 / Empty QR'); return; }
   const row = state.indexByItem.get(String(itemStr));
-  if(!row){ showToast('查無此 ITEM · 請確認 / Item not found'); return; }
-  openPayModal(row); // 直接彈窗
+  if(!row){ 
+    showToast('查無此 ITEM · 請確認 / Item not found'); 
+    // 未找到時繼續掃描
+    resumeScan();
+    return; 
+  }
+  openPayModal(row); // 直接彈窗（會自動 pause）
 }
 
 /* ===== (10) 重新整理 & 故障診斷 ===== */
@@ -750,36 +896,28 @@ $('btnDiagnose').addEventListener('click', async ()=>{
     let text = ''; try{ text = await res.text(); }catch(_){ }
     const snippet = (text||'').slice(0, 280);
     alert(
-      '【診斷 / Diagnose】\\n'
-      + 'URL: ' + WEB_APP_URL + '?mode=ping\\n'
-      + 'Status: ' + res.status + '\\n'
-      + 'Content-Type: ' + ct + '\\n'
-      + 'Body (前 280 字) / First 280 chars:\\n———\\n'
-      + snippet + '\\n———\\n'
+      '【診斷 / Diagnose】\n'
+      + 'URL: ' + WEB_APP_URL + '?mode=ping\n'
+      + 'Status: ' + res.status + '\n'
+      + 'Content-Type: ' + ct + '\n'
+      + 'Body (前 280 字) / First 280 chars:\n———\n'
+      + snippet + '\n———\n'
       + '若非 JSON 或 CORS 擋下，前端會在 roster 讀取時失敗。'
     );
   }catch(e){ alert('Ping 失敗：可能網路/CORS/權限 · Failed to ping'); }
 });
 
 /* ===== (11) 啟動 ===== */
+// ===== 全域錯誤攔截（部署後若有 JS 錯誤會冒泡顯示） =====
+window.addEventListener('error', (e)=>{
+  try{ console.error('[GlobalError]', e.message, e.filename, e.lineno, e.colno, e.error); }catch(_){}
+  try{ showToast('發生錯誤：' + (e.message || 'Script error')); }catch(_){}
+});
+window.addEventListener('unhandledrejection', (e)=>{
+  try{ console.error('[UnhandledRejection]', e.reason); }catch(_){}
+  try{ showToast('發生錯誤（Promise）：' + (e.reason && e.reason.message ? e.reason.message : '')); }catch(_){}
+});
 fetchRoster();
 </script>
 </body>
-
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
