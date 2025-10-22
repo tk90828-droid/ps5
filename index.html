@@ -207,8 +207,23 @@ button.primary:hover{filter:saturate(1.08);}
 .note-small{font-size:12px;color:#9AA4AF;margin-left:auto}
 .note-tight{white-space:nowrap}
 .note-checkbox{width:18px;height:18px;cursor:pointer}
-.note-select{background:#0f1117;border:1px solid #2b3244;color:#e5e7eb;border-radius:8px;padding:6px 8px}
-.note-input{background:#0f1117;border:1px solid #2b3244;color:#e5e7eb;border-radius:8px;padding:6px 8px;width:220px}
+.note-select{background:#0f1117;border:1px solid #2b3244;color:#e5e7eb;border-radius:8px;padding:6px 8px;min-width:88px;max-width:140px}
+.note-input{background:#0f1117;border:1px solid #2b3244;color:#e5e7eb;border-radius:8px;padding:6px 8px;width:100%}
+
+/* ✅ NOTE 專用緊密佈局（讓前四欄變窄，後四欄不被擠壓） */
+.table-note{table-layout:fixed}
+.table-note th.note-tight,.table-note td.note-tight{
+  padding:4px 6px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.table-note col.c-flag{width:40px}
+.table-note col.c-name{width:120px}
+.table-note col.c-ig{width:140px}
+.table-note col.c-leader{width:110px}
+.table-note col.c-status{width:88px}
+.table-note col.c-confirm{width:72px}
+.table-note col.c-method{width:110px}
+.table-note col.c-note{width:auto}
 </style>
 </head>
 <body>
@@ -901,7 +916,13 @@ function renderNoteTable(){
   // 排序：leader -> name
   rows.sort((a,b)=> (a.leader||'').localeCompare(b.leader||'') || (a.name||'').localeCompare(b.name||''));
 
-  // 建構表格（flag/name/ig/leader 緊密）
+  // ✅ 使用 colgroup 鎖寬：前四欄緊密、後四欄保寬
+  const colgroup = `<colgroup>
+    <col class="c-flag"><col class="c-name"><col class="c-ig"><col class="c-leader">
+    <col class="c-status"><col class="c-confirm"><col class="c-method"><col class="c-note">
+  </colgroup>`;
+
+  // 建構表頭（flag/name/ig/leader 使用 note-tight）
   const th = `<thead><tr>
     <th class="note-tight">flag</th>
     <th class="note-tight">name</th>
@@ -920,7 +941,7 @@ function renderNoteTable(){
     const method = r.pay_method || '';
     const note = r.note || '';
     return `<tr data-item="${escapeHtml(item)}">
-      <td>${safe(r.flag||'')}</td>
+      <td class="note-tight">${safe(r.flag||'')}</td>
       <td class="note-tight">${safe(r.name||'')}</td>
       <td class="note-tight">${safe(r.ig||'')}</td>
       <td class="note-tight">${safe(r.leader||'')}</td>
@@ -939,7 +960,7 @@ function renderNoteTable(){
     </tr>`;
   }).join('');
 
-  noteTableWrap.innerHTML = `<table class="table">${th}<tbody>${body||'<tr><td colspan="8">無資料</td></tr>'}</tbody></table>`;
+  noteTableWrap.innerHTML = `<table class="table table-note">${colgroup}${th}<tbody>${body||'<tr><td colspan="8">無資料</td></tr>'}</tbody></table>`;
 
   // 事件委派：checkbox/select/input → 即時儲存
   noteTableWrap.querySelector('tbody')?.addEventListener('change', handleNoteChange, { once:true });
@@ -997,4 +1018,3 @@ fetchRoster();
 </script>
 </body>
 </html>
-
