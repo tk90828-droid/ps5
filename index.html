@@ -203,7 +203,8 @@ button.primary:hover{filter:saturate(1.08);}
 /* ===== NOTE Modal ===== */
 .note-filters{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
 .note-filters input[type="text"]{
-  padding:8px 10px;border-radius:10px;
+  padding:4px 8px; /* 高度約減半 */
+  border-radius:10px;
   border:1px solid #e5e7eb;           /* 明顯外框 */
   background:#ffffff;                  /* 白底 */
   color:#0b0c10;                       /* 深色字 */
@@ -251,8 +252,8 @@ button.primary:hover{filter:saturate(1.08);}
 .table-note.hide-status thead th:nth-child(5),
 .table-note.hide-status tbody td:nth-child(5){display:none}
 
-/* ✅ 繳費狀態更緊湊的字體 */
-.table-note td.status-cell{font-size:12px;white-space:nowrap}
+/* ✅ 繳費狀態欄：置中顯示勾/叉 */
+.table-note td.status-cell{font-size:12px;white-space:nowrap;text-align:center}
 </style>
 </head>
 <body>
@@ -406,7 +407,7 @@ const PAY_PASSWORD = '05140714';
 /* ✅ 是否啟用送出時密碼驗證（暫時關閉就設 false；要再開啟改 true） */
 const ENABLE_PAY_PASSWORD = false;
 /* ✅ NOTE 密碼沿用 PAY_PASSWORD（可自行改成獨立常數） */
-const NOTE_PASSWORD = '0327';
+const NOTE_PASSWORD = PAY_PASSWORD;
 
 /* ===== (2) 狀態 ===== */
 const state = {
@@ -995,7 +996,7 @@ function renderNoteTable(){
 
   const body = rows.map(r=>{
     const item = String(r.item||'');
-    const paid = norm(r.pay_status)==='paid' ? '已' : '未'; // 更緊湊
+    const isPaid = norm(r.pay_status)==='paid';
     const checked = r.confirm ? 'checked' : '';
     const method = r.pay_method || '';
     const note = r.note || '';
@@ -1004,7 +1005,7 @@ function renderNoteTable(){
       <td class="note-tight">${safe(r.name||'')}</td>
       <td class="note-tight">${safe(r.ig||'')}</td>
       <td class="note-tight">${safe(r.leader||'')}</td>
-      <td class="status-cell">${paid}</td>
+      <td class="status-cell">${isPaid ? SVG_CHECK : SVG_CROSS}</td>
       <td><input type="checkbox" class="note-checkbox" ${checked}></td>
       <td>
         <select class="note-select">
