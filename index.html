@@ -70,7 +70,7 @@ button.primary:hover{filter:saturate(1.08);}
 .namebar{display:flex;align-items:center;gap:8px;min-width:0}
 .flag{font-size:18px}
 .personN{font-weight:900;font-size:15px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ig{font-size:13px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ig{font-size:13px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; text-transform:uppercase; } /* IG 顯示大寫 */
 .country{opacity:.6}
 
 /* 金色漸層（沿用舊樣式） */
@@ -138,7 +138,7 @@ button.primary:hover{filter:saturate(1.08);}
 .leader-name.overview{ background:none; -webkit-background-clip:unset; background-clip:unset; color:#C7CED6; /* 總覽銀色 */ }
 .leader-meta{font-size:12px;color:#9AA4AF;display:flex;align-items:center;gap:8px}
 .meta-icon{display:inline-grid;place-items:center}
-.meta-icon svg{width:16px;height:16px;display:block}
+.meta-icon svg{width:12px;height:12px;display:block} /* ✅ 打勾/叉小一點 */
 .leader-actions{display:flex;gap:8px}
 .leader-toggle{padding:4px 8px;border-radius:9px;border:1px solid #2b3244;background:#0f1117;color:#e5e7eb;font-size:12px;cursor:pointer}
 .leader-toggle:hover{border-image:var(--rainbow) 1;border-width:1px;border-style:solid}
@@ -147,7 +147,7 @@ button.primary:hover{filter:saturate(1.08);}
 .member-line:hover{background:rgba(255,255,255,.04)}
 .mini{display:flex;align-items:center;gap:8px;min-width:0}
 .mini .m-name{font-size:12px;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mini .m-ig{font-size:11px;color:#9AA4AF;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini .m-ig{font-size:11px;color:#9AA4AF;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; text-transform:uppercase; } /* ✅ IG 大寫 */
 
 /* 概覽顯示/隱藏控制：六色彩虹按鈕（收合時才出現） */
 .ov-toggle{
@@ -229,7 +229,7 @@ button.primary:hover{filter:saturate(1.08);}
 .nf-adv{display:none; align-items:center; gap:10px; flex-wrap:wrap}
 .nf-adv.show{display:flex;}
 .note-tight{white-space:nowrap}
-.note-checkbox{width:18px;height:18px;cursor:pointer}
+.note-checkbox{width:14px;height:14px;cursor:pointer} /* ✅ 小一點 */
 .note-select{background:#0f1117;border:1px solid #2b3244;color:#e5e7eb;border-radius:8px;padding:6px 8px;min-width:88px;max-width:140px}
 .note-input{background:#0f1117;border:1px solid #2b3244;color:#e5e7eb;border-radius:8px;padding:6px 8px;width:100%}
 
@@ -251,8 +251,8 @@ button.primary:hover{filter:saturate(1.08);}
 
 /* ✅ 可調欄寬（以 CSS 變數驅動，JS 於渲染時設定） */
 .table-note col.c-flag{width:40px}
-.table-note col.c-name{width:var(--nameW,120px)}
-.table-note col.c-ig{width:var(--igW,140px)}
+.table-note col.c-name{width:var(--nameW,60px)}  /* ✅ 預設 60px */
+.table-note col.c-ig{width:var(--igW,60px)}      /* ✅ 預設 60px */
 .table-note col.c-leader{width:110px}
 .table-note col.c-status{width:64px}
 .table-note col.c-confirm{width:72px}
@@ -278,6 +278,9 @@ button.primary:hover{filter:saturate(1.08);}
 
 /* ✅ 繳費狀態欄：置中顯示勾/叉 */
 .table-note td.status-cell{font-size:12px;white-space:nowrap;text-align:center}
+
+/* ✅ NOTE：IG 欄位顯示大寫 */
+.table-note tbody td:nth-child(3){ text-transform:uppercase; }
 
 /* 📱 手機：把 NOTE 改成「全螢幕頁」＋ 置頂搜尋列，避免被視窗裁切 */
 @media (max-width:640px){
@@ -306,6 +309,15 @@ button.primary:hover{filter:saturate(1.08);}
 
 /* ✅ 隱藏 NOTE 進階欄位的像素讀數（仍可調整） */
 #wNameV,#wIgV{display:none;}
+
+/* NOTE 視窗右上角關閉叉叉 */
+.note-close{
+  position:absolute; right:10px; top:10px;
+  width:28px; height:28px; border:none; border-radius:8px;
+  background:#0f1117; color:#e5e7eb; cursor:pointer;
+  display:inline-grid; place-items:center; line-height:1;
+}
+.note-close:hover{border:1px solid #2b3244}
 </style>
 </head>
 <body>
@@ -347,7 +359,7 @@ button.primary:hover{filter:saturate(1.08);}
     <div class="fabrow">
       <button id="btnScan" class="fab primary">掃描 QR / Scan QR</button>
       <button id="btnRefresh" class="fab">重新整理 / Refresh</button>
-      <button id="btnDiagnose" class="fab">診斷 / Diagnose</button>
+      <button id="btnDiagnose" class="fab" style="display:none" disabled>診斷 / Diagnose</button> <!-- ✅ 暫時不顯示、不運作 -->
     </div>
   </div>
 
@@ -414,8 +426,9 @@ button.primary:hover{filter:saturate(1.08);}
 
 <!-- ✅ NOTE Modal（需密碼） -->
 <div id="noteBackdrop" class="backdrop">
-  <div class="modal" style="width:min(980px,96vw)">
-    <div class="title2">註記 / Note（全域共用）</div>
+  <div class="modal" style="width:min(980px,96vw); position:relative">
+    <button class="note-close" id="noteCloseX" aria-label="Close">×</button> <!-- ✅ 右上角叉叉 -->
+    <div class="title2">註記 / Note</div> <!-- ✅ 移除（全域共用） -->
     <div class="rb"></div>
 
     <!-- 篩選/搜尋列（新版排版） -->
@@ -436,7 +449,7 @@ button.primary:hover{filter:saturate(1.08);}
             <button id="wNameUp" class="wbtn" title="增加 name 欄寬">▲</button>
             <button id="wNameDown" class="wbtn" title="減少 name 欄寬">▼</button>
           </div>
-          <span id="wNameV" class="note-tight">120px</span>
+          <span id="wNameV" class="note-tight">60px</span>
         </div>
 
         <div class="wctrl">
@@ -445,7 +458,7 @@ button.primary:hover{filter:saturate(1.08);}
             <button id="wIgUp" class="wbtn" title="增加 ig 欄寬">▲</button>
             <button id="wIgDown" class="wbtn" title="減少 ig 欄寬">▼</button>
           </div>
-          <span id="wIgV" class="note-tight">140px</span>
+          <span id="wIgV" class="note-tight">60px</span>
         </div>
 
         <!-- 欄位顯示（只留關鍵字） -->
@@ -490,8 +503,8 @@ const state = {
   ovHidden: false,       // 概覽是否收合
   /* NOTE 功能 */
   noteAuthed: false,     // 是否通過 NOTE 密碼
-  nameW: 120,            // NOTE 欄寬（用按鈕調整）
-  igW: 140
+  nameW: 60,             // ✅ NOTE 預設欄寬
+  igW: 60
 };
 const hiddenLeaders = new Set();
 const RAINBOW = ['#EF4444','#F59E0B','#FACC15','#22C55E','#3B82F6','#8B5CF6'];
@@ -540,7 +553,7 @@ async function fetchRoster(){
     for(const r of rows){ if(r.item) state.indexByItem.set(String(r.item), r); }
     rebuildDatalists();
     renderStats();
-    headMsg('請以「掃描 QR」或「手動查找」操作 · Use Scan or Manual Search', false);
+    headMsg('', false); /* ✅ 移除首頁「請以掃描QR…」整段文字 */
     renderOverview();
   }catch(err){
     console.error(err);
@@ -892,22 +905,7 @@ function handleScanItem(itemStr){
 
 /* ===== (10) 重新整理 & 故障診斷 ===== */
 $('btnRefresh').addEventListener('click', ()=> fetchRoster());
-$('btnDiagnose').addEventListener('click', async ()=>{
-  try{
-    const res = await fetch(WEB_APP_URL + '?mode=ping', {cache:'no-store'});
-    const ct = res.headers.get('content-type') || '(無 content-type)';
-    let text = ''; try{ text = await res.text(); }catch(_){}
-    const snippet = (text||'').slice(0, 280);
-    alert(
-      '【診斷 / Diagnose】\n' +
-      'URL: ' + WEB_APP_URL + '?mode=ping\n' +
-      'Status: ' + res.status + '\n' +
-      'Content-Type: ' + ct + '\n' +
-      'Body (前 280 字) / First 280 chars:\n———\n' + snippet + '\n———\n' +
-      '若非 JSON 或 CORS 擋下，前端會在 roster 讀取時失敗。'
-    );
-  }catch(e){ alert('Ping 失敗：可能網路/CORS/權限 · Failed to ping'); }
-});
+// 診斷按鈕暫不運作（已於 HTML 隱藏並 disabled）
 
 /* ===== (11) 已繳費/未繳費清單（原本） ===== */
 const listBackdrop = $('listBackdrop');
@@ -982,7 +980,7 @@ function buildPaidTable(rows){
     return `<tr>
       <td class="muted">${safe(t)}</td>
       <td>${safe(r.name)}</td>
-      <td class="muted">${safe(r.ig)}</td>
+      <td class="muted" style="text-transform:uppercase">${safe(r.ig)}</td>
       <td class="muted">${safe(r.leader)}</td>
       <td>${stat}</td>
     </tr>`;
@@ -997,7 +995,7 @@ function buildUnpaidTable(rows){
     const stat = '<span class="status-unpaid">未繳費</span>';
     return `<tr>
       <td>${safe(r.name)}</td>
-      <td class="muted">${safe(r.ig)}</td>
+      <td class="muted" style="text-transform:uppercase">${safe(r.ig)}</td>
       <td class="muted">${safe(r.leader)}</td>
       <td>${stat}</td>
     </tr>`;
@@ -1009,6 +1007,7 @@ function buildUnpaidTable(rows){
 const noteBackdrop = $('noteBackdrop');
 const noteTableWrap = $('noteTableWrap');
 $('noteClose').addEventListener('click', ()=> noteBackdrop.style.display='none');
+$('noteCloseX').addEventListener('click', ()=> noteBackdrop.style.display='none'); /* ✅ 右上角叉叉關閉 */
 noteBackdrop.addEventListener('click', (e)=>{ if(e.target===noteBackdrop) noteBackdrop.style.display='none'; });
 
 $('noteOnlyUnpaid').addEventListener('change', renderNoteTable);
@@ -1073,8 +1072,8 @@ function renderNoteTable(){
   rows.sort((a,b)=> (a.leader||'').localeCompare(b.leader||'') || (a.name||'').localeCompare(b.name||''));
 
   // 讀取 UI 設定（欄寬 & 顯示）
-  const nameW = Number($('wName')?.value || state.nameW || 120);
-  const igW   = Number($('wIg')?.value   || state.igW   || 140);
+  const nameW = Number($('wName')?.value || state.nameW || 60);
+  const igW   = Number($('wIg')?.value   || state.igW   || 60);
   $('wNameV').textContent = nameW + 'px';
   $('wIgV').textContent = igW + 'px';
 
@@ -1111,7 +1110,7 @@ function renderNoteTable(){
     return `<tr data-item="${escapeHtml(item)}">
       <td class="note-tight">${safe(r.flag||'')}</td>
       <td class="note-tight">${safe(r.name||'')}</td>
-      <td class="note-tight">${safe(r.ig||'')}</td>
+      <td class="note-tight" style="text-transform:uppercase">${safe(r.ig||'')}</td>
       <td class="note-tight">${safe(r.leader||'')}</td>
       <td class="status-cell">${isPaid ? SVG_CHECK : SVG_CROSS}</td>
       <td><input type="checkbox" class="note-checkbox" ${checked}></td>
@@ -1129,15 +1128,11 @@ function renderNoteTable(){
   }).join('');
 
   // 組裝 table
-  const tableHtml = `<table class="table table-note">${colgroup}${th}<tbody>${body||'<tr><td colspan="8">無資料</td></tr>'}</tbody></table>`;
+  const tableHtml = `<table class="table table-note" style="--nameW:${nameW}px;--igW:${igW}px">${colgroup}${th}<tbody>${body||'<tr><td colspan="8">無資料</td></tr>'}</tbody></table>`;
   noteTableWrap.innerHTML = tableHtml;
 
-  // 套用欄寬
-  const tableEl = noteTableWrap.querySelector('.table-note');
-  tableEl.style.setProperty('--nameW', nameW + 'px');
-  tableEl.style.setProperty('--igW', igW + 'px');
-
   // 依勾選隱藏欄位
+  const tableEl = noteTableWrap.querySelector('.table-note');
   tableEl.classList.toggle('hide-flag',   !showFlag);
   tableEl.classList.toggle('hide-name',   !showName);
   tableEl.classList.toggle('hide-ig',     !showIg);
