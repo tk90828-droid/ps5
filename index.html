@@ -1,4 +1,4 @@
-<!doctype html> 
+<!doctype html>  
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8" />
@@ -235,6 +235,7 @@ button.primary:hover{filter:saturate(1.08);}
 
 /* Save 按鈕（靠右） */
 .nf-save{ margin-left:auto; border:1px solid #2b3244; background:#0f1117; color:#e5e7eb; padding:4px 10px; border-radius:8px; cursor:pointer; font-weight:800; font-size:12px; }
+.nf-save[disabled]{opacity:.6; cursor:not-allowed;}
 .nf-save:hover{ border-image:var(--rainbow) 1; border-width:1px; border-style:solid; }
 
 /* 第二行：進階（收合用） */
@@ -264,11 +265,13 @@ button.primary:hover{filter:saturate(1.08);}
 .table-note col.c-flag{width:40px}
 .table-note col.c-name{width:var(--nameW,60px)}
 .table-note col.c-ig{width:var(--igW,80px)}      /* 預設 80px，可調 */
-.table-note col.c-leader{width:var(--leaderW,80px)}/* 預設 80px，可調 */
+/* leader 改為固定寬（移除調整功能） */
+.table-note col.c-leader{width:80px}
 .table-note col.c-status{width:64px}
-.table-note col.c-confirm{width:72px}
-.table-note col.c-method{width:110px}
-.table-note col.c-note{width:110px}              /* 備註 = 方式 同寬 110px */
+/* 讓「確認」「方式」更靠緊：縮欄寬 */
+.table-note col.c-confirm{width:56px}
+.table-note col.c-method{width:96px}
+.table-note col.c-note{width:110px}
 
 /* ✅ 欄位顯示/隱藏（套在 table 上的 class） */
 .table-note.hide-flag col.c-flag,
@@ -291,6 +294,12 @@ button.primary:hover{filter:saturate(1.08);}
 .table-note thead th.status-head{ text-align:center; }
 .table-note td.status-cell{font-size:12px;white-space:nowrap;text-align:center}
 
+/* ✅ NOTE 確認/方式欄 padding 再縮 */
+.table-note thead th:nth-child(6),
+.table-note tbody td:nth-child(6),
+.table-note thead th:nth-child(7),
+.table-note tbody td:nth-child(7){ padding-left:4px; padding-right:4px; }
+
 /* ✅ NOTE：IG 欄位顯示大寫 */
 .table-note tbody td:nth-child(3){ text-transform:uppercase; }
 
@@ -312,17 +321,34 @@ button.primary:hover{filter:saturate(1.08);}
 }
 
 /* ✅ 隱藏 NOTE 進階欄位的像素讀數（仍可調整） */
-#wNameV,#wIgV,#wLeaderV{display:none;}
+#wNameV,#wIgV{display:none;}
 
-/* 彈窗統一「右上角叉叉」樣式（置中顯示） */
+/* ====== 清單（Paid/Unpaid）欄寬可調 ====== */
+.table-list{table-layout:fixed; width:100%}
+.table-list col.c-time{width:96px}
+.table-list col.c-name{width:120px}
+.table-list col.c-ig{width:var(--listIgW,120px)}
+.table-list col.c-leader{width:var(--listLeaderW,90px)}
+.table-list col.c-status{width:70px}
+
+/* 清單用的微控條（沿用 NOTE 的 wctrl/wbtn 樣式） */
+#listCtrls{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:6px 0 8px;}
+#lIgV,#lLeaderV{display:none;}
+
+/* NOTE 標題旁總數樣式 */
+.note-ok{ color:var(--ok); font-weight:900; margin-left:6px; }
+
+/* 彈窗統一「右上角叉叉」樣式（置中顯示，無框、藍色發光） */
 .modal-close, .note-close{
-  position:absolute; right:10px; top:10px;
+  position:absolute; right:10px; top:8px;
   width:28px; height:28px;
-  border:none; border-radius:8px;
-  background:#0f1117; color:#e5e7eb;
-  cursor:pointer; display:inline-grid; place-items:center; line-height:1; font-size:18px;
+  border:none; border-radius:0;
+  background:transparent; 
+  color:#3B82F6; /* 實心藍 */
+  text-shadow: 0 0 8px rgba(59,130,246,.8), 0 0 14px rgba(59,130,246,.5); /* 光暈 */
+  cursor:pointer; display:grid; place-items:center; line-height:1; font-size:20px; font-weight:900;
 }
-.modal-close:hover, .note-close:hover{border:1px solid #2b3244}
+.modal-close:hover, .note-close:hover{ filter:brightness(1.1); border:none; }
 </style>
 </head>
 <body>
@@ -426,6 +452,27 @@ button.primary:hover{filter:saturate(1.08);}
     <button class="modal-close" id="listCloseX" aria-label="Close">×</button>
     <div id="listTitle" class="title2">清單</div>
     <div class="rb"></div>
+
+    <!-- 新增：清單欄寬控制（IG/Leader） -->
+    <div id="listCtrls">
+      <div class="wctrl">
+        <span class="note-tight">ig寬</span>
+        <div class="btncol">
+          <button id="lIgUp" class="wbtn" title="增加 ig 欄寬">▲</button>
+          <button id="lIgDown" class="wbtn" title="減少 ig 欄寬">▼</button>
+        </div>
+        <span id="lIgV" class="note-tight">120px</span>
+      </div>
+      <div class="wctrl">
+        <span class="note-tight">leader寬</span>
+        <div class="btncol">
+          <button id="lLeaderUp" class="wbtn" title="增加 leader 欄寬">▲</button>
+          <button id="lLeaderDown" class="wbtn" title="減少 leader 欄寬">▼</button>
+        </div>
+        <span id="lLeaderV" class="note-tight">90px</span>
+      </div>
+    </div>
+
     <div id="listBody" class="tablewrap"></div>
     <div class="actions">
       <button id="listClose" class="btn">關閉 / Close</button>
@@ -437,7 +484,7 @@ button.primary:hover{filter:saturate(1.08);}
 <div id="noteBackdrop" class="backdrop">
   <div class="modal" style="width:min(980px,96vw); position:relative">
     <button class="note-close" id="noteCloseX" aria-label="Close">×</button> <!-- ✅ 右上角叉叉 -->
-    <div class="title2">註記 / Note</div>
+    <div class="title2">註記 / Note <span id="noteCount" class="note-ok"></span></div>
     <div class="rb"></div>
 
     <!-- 篩選/搜尋列（新版排版） -->
@@ -451,7 +498,7 @@ button.primary:hover{filter:saturate(1.08);}
         <button id="noteSave" class="nf-save" title="儲存 Note">Save</button>
       </div>
 
-      <!-- 第二行：展開才顯示（加入 IG/Leader 欄寬調整） -->
+      <!-- 第二行：展開才顯示（僅保留 name/ig 欄寬調整；移除 leader 調整） -->
       <div id="noteAdv" class="nf-adv" aria-hidden="true">
         <div class="wctrl">
           <span class="note-tight">name寬</span>
@@ -468,14 +515,6 @@ button.primary:hover{filter:saturate(1.08);}
             <button id="wIgDown" class="wbtn" title="減少 ig 欄寬">▼</button>
           </div>
           <span id="wIgV" class="note-tight">80px</span>
-        </div>
-        <div class="wctrl">
-          <span class="note-tight">leader寬</span>
-          <div class="btncol">
-            <button id="wLeaderUp" class="wbtn" title="增加 leader 欄寬">▲</button>
-            <button id="wLeaderDown" class="wbtn" title="減少 leader 欄寬">▼</button>
-          </div>
-          <span id="wLeaderV" class="note-tight">80px</span>
         </div>
 
         <!-- 欄位顯示（只留關鍵字） -->
@@ -519,7 +558,9 @@ const state = {
   /* NOTE 功能（預設欄寬） */
   nameW: 60,
   igW: 80,
-  leaderW: 80,
+  /* 清單（Paid/Unpaid）欄寬 */
+  listIgW: 120,
+  listLeaderW: 90,
   noteAuthed: false
 };
 const hiddenLeaders = new Set();
@@ -949,6 +990,7 @@ function openListModal(kind){
     listTitle.textContent = `未繳費名單 / Unpaid List（${rows.length}）`;
     listBody.innerHTML = buildUnpaidTable(rows);
   }
+  applyListWidths(); // 依目前狀態套用欄寬
   listBackdrop.style.display='flex';
 }
 // 時間抓取
@@ -975,16 +1017,15 @@ function fmtTime(ts){
 function safe(s){ return escapeHtml(s??''); }
 
 function buildPaidTable(rows){
+  const colgroup = `<colgroup>
+    <col class="c-time"><col class="c-name"><col class="c-ig"><col class="c-leader"><col class="c-status">
+  </colgroup>`;
   const th = `<thead><tr>
-    <th style="width:96px">時間</th>
-    <th style="width:120px">name</th>
-    <th style="width:120px">ig</th>
-    <th style="width:90px">leader</th>
-    <th style="width:70px">繳費狀態</th>
+    <th>時間</th><th>name</th><th>ig</th><th>leader</th><th>繳費狀態</th>
   </tr></thead>`;
   const tb = rows.map(r=>{
     const t = fmtTime(getTimeValue(r));
-    const stat = norm(r.pay_status)==='paid' ? '<span class="status-paid">已繳費</span>' : '<span class="status-unpaid">未繳費</span>';
+    const stat = '<span class="status-paid">已繳費</span>';
     return `<tr>
       <td class="muted">${safe(t)}</td>
       <td>${safe(r.name)}</td>
@@ -993,9 +1034,12 @@ function buildPaidTable(rows){
       <td class="center">${stat}</td>
     </tr>`;
   }).join('');
-  return `<div class="tablewrap"><table class="table">${th}<tbody>${tb||'<tr><td colspan="5">無資料</td></tr>'}</tbody></table></div>`;
+  return `<div class="tablewrap"><table class="table table-list" id="paidTable">${colgroup}${th}<tbody>${tb||'<tr><td colspan="5">無資料</td></tr>'}</tbody></table></div>`;
 }
 function buildUnpaidTable(rows){
+  const colgroup = `<colgroup>
+    <col class="c-name"><col class="c-ig"><col class="c-leader"><col class="c-status">
+  </colgroup>`;
   const th = `<thead><tr>
     <th>name</th><th>ig</th><th>leader</th><th>繳費狀態</th>
   </tr></thead>`;
@@ -1008,8 +1052,28 @@ function buildUnpaidTable(rows){
       <td class="center">${stat}</td>
     </tr>`;
   }).join('');
-  return `<div class="tablewrap"><table class="table">${th}<tbody>${tb||'<tr><td colspan="4">無資料</td></tr>'}</tbody></table></div>`;
+  return `<div class="tablewrap"><table class="table table-list" id="unpaidTable">${colgroup}${th}<tbody>${tb||'<tr><td colspan="4">無資料</td></tr>'}</tbody></table></div>`;
 }
+
+/* 清單欄寬控制（與 NOTE 相同步幅） */
+function adjustListWidth(kind, delta){
+  const min=40, max=240, step=10;
+  if(kind==='ig'){ state.listIgW = Math.max(min, Math.min(max, state.listIgW + (delta>0?step:-step))); }
+  else { state.listLeaderW = Math.max(min, Math.min(max, state.listLeaderW + (delta>0?step:-step))); }
+  applyListWidths();
+}
+function applyListWidths(){
+  document.querySelectorAll('.table-list').forEach(t=>{
+    t.style.setProperty('--listIgW', state.listIgW+'px');
+    t.style.setProperty('--listLeaderW', state.listLeaderW+'px');
+  });
+  $('lIgV').textContent = state.listIgW+'px';
+  $('lLeaderV').textContent = state.listLeaderW+'px';
+}
+$('lIgUp')?.addEventListener('click', ()=>adjustListWidth('ig', +1));
+$('lIgDown')?.addEventListener('click', ()=>adjustListWidth('ig', -1));
+$('lLeaderUp')?.addEventListener('click', ()=>adjustListWidth('leader', +1));
+$('lLeaderDown')?.addEventListener('click', ()=>adjustListWidth('leader', -1));
 
 /* ===== (12) NOTE 功能 ===== */
 const noteBackdrop = $('noteBackdrop');
@@ -1018,12 +1082,12 @@ $('noteClose').addEventListener('click', ()=> noteBackdrop.style.display='none')
 $('noteCloseX').addEventListener('click', ()=> noteBackdrop.style.display='none'); /* 右上角叉叉 */
 noteBackdrop.addEventListener('click', (e)=>{ if(e.target===noteBackdrop) noteBackdrop.style.display='none'; });
 
-$('noteOnlyUnpaid').addEventListener('change', renderNoteTable);
-$('noteSearchName').addEventListener('input', renderNoteTable);
-$('noteSearchIg').addEventListener('input', renderNoteTable);
+$('noteOnlyUnpaid').addEventListener('change', ()=>{ renderNoteTable(); });
+$('noteSearchName').addEventListener('input', ()=>{ renderNoteTable(); });
+$('noteSearchIg').addEventListener('input', ()=>{ renderNoteTable(); });
 
 /* 仍保留原本監聽（不存在就略過），再加上新按鈕監聽 */
-['wName','wIg','wLeader','showFlag','showName','showIg','showLeader','showStatus'].forEach(id=>{
+['wName','wIg','showFlag','showName','showIg','showLeader','showStatus'].forEach(id=>{
   $(id)?.addEventListener('input', renderNoteTable);
   $(id)?.addEventListener('change', renderNoteTable);
 });
@@ -1033,15 +1097,12 @@ function adjustWidth(kind, delta){
   const min=30, max=200, step=10;
   if(kind==='name'){ state.nameW = Math.max(min, Math.min(max, state.nameW + (delta>0?step:-step))); }
   else if(kind==='ig'){ state.igW = Math.max(min, Math.min(max, state.igW + (delta>0?step:-step))); }
-  else { state.leaderW = Math.max(min, Math.min(max, state.leaderW + (delta>0?step:-step))); }
   renderNoteTable();
 }
 $('wNameUp')?.addEventListener('click', ()=>adjustWidth('name', +1));
 $('wNameDown')?.addEventListener('click', ()=>adjustWidth('name', -1));
 $('wIgUp')?.addEventListener('click', ()=>adjustWidth('ig', +1));
 $('wIgDown')?.addEventListener('click', ()=>adjustWidth('ig', -1));
-$('wLeaderUp')?.addEventListener('click', ()=>adjustWidth('leader', +1));
-$('wLeaderDown')?.addEventListener('click', ()=>adjustWidth('leader', -1));
 
 /* 新增：三角形展開/收合進階選單 */
 const noteToggleBtn = $('noteToggle');
@@ -1065,10 +1126,26 @@ function openNoteModal(){
   noteBackdrop.style.display='flex';
 }
 
+/* NOTE 標題上的確認勾勾總數 */
+function updateNoteConfirmCount(){
+  const el = $('noteCount');
+  if(!el) return;
+  // 以目前表格上的勾勾為準（更即時）；若表格未渲染則用 state
+  const tbody = noteTableWrap.querySelector('tbody');
+  let count = 0;
+  if(tbody){
+    count = tbody.querySelectorAll('input.note-checkbox:checked').length;
+  }else{
+    count = state.rows.filter(r=>!!r.confirm).length;
+  }
+  el.textContent = `(${count})`;
+}
+
 /* NOTE 表格渲染（改為：只渲染，不自動儲存） */
 function renderNoteTable(){
   if(!state.rows.length){
     noteTableWrap.innerHTML = '<div class="leader-meta">尚未載入名單 / Not loaded</div>';
+    updateNoteConfirmCount();
     return;
   }
   const onlyUnpaid = $('noteOnlyUnpaid').checked;
@@ -1086,10 +1163,8 @@ function renderNoteTable(){
   // 讀取 UI 設定（欄寬 & 顯示）
   const nameW = Number($('wName')?.value || state.nameW || 60);
   const igW = Number($('wIg')?.value || state.igW || 80);
-  const leaderW = Number($('wLeader')?.value || state.leaderW || 80);
   $('wNameV').textContent = nameW + 'px';
   $('wIgV').textContent = igW + 'px';
-  $('wLeaderV').textContent = leaderW + 'px';
 
   const showFlag = $('showFlag')?.checked !== false;
   const showName = $('showName')?.checked !== false;
@@ -1097,7 +1172,7 @@ function renderNoteTable(){
   const showLeader = $('showLeader')?.checked !== false;
   const showStatus = $('showStatus')?.checked !== false;
 
-  // ✅ 使用 colgroup 鎖寬：name/ig/leader 用 CSS 變數
+  // ✅ 使用 colgroup 鎖寬：name/ig 用 CSS 變數；leader 固定寬
   const colgroup = `<colgroup>
     <col class="c-flag"><col class="c-name"><col class="c-ig"><col class="c-leader">
     <col class="c-status"><col class="c-confirm"><col class="c-method"><col class="c-note">
@@ -1142,7 +1217,7 @@ function renderNoteTable(){
   }).join('');
 
   // 組裝 table（帶入變數）
-  const tableHtml = `<table class="table table-note" style="--nameW:${nameW}px;--igW:${igW}px;--leaderW:${leaderW}px">${colgroup}${th}<tbody>${body||'<tr><td colspan="8">無資料</td></tr>'}</tbody></table>`;
+  const tableHtml = `<table class="table table-note" style="--nameW:${nameW}px;--igW:${igW}px">${colgroup}${th}<tbody>${body||'<tr><td colspan="8">無資料</td></tr>'}</tbody></table>`;
   noteTableWrap.innerHTML = tableHtml;
 
   // 依勾選隱藏欄位
@@ -1152,14 +1227,21 @@ function renderNoteTable(){
   tableEl.classList.toggle('hide-ig', !showIg);
   tableEl.classList.toggle('hide-leader', !showLeader);
   tableEl.classList.toggle('hide-status', !showStatus);
+
+  updateNoteConfirmCount();
 }
 
-/* ===== NOTE 儲存（改為手動 Save） ===== */
+/* ===== NOTE 儲存（改為手動 Save，含 loading 圈） ===== */
 $('noteSave').addEventListener('click', saveNotes);
 
 async function saveNotes(){
+  const btn = $('noteSave');
   const tbody = noteTableWrap.querySelector('tbody');
   if(!tbody){ showToast('無可儲存資料'); return; }
+  const prevHtml = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = 'Saving <span class="spinner" aria-hidden="true"></span>';
+
   const rows = Array.from(tbody.querySelectorAll('tr[data-item]'));
   const payloads = [];
   for(const tr of rows){
@@ -1180,14 +1262,19 @@ async function saveNotes(){
     }
   }
 
-  if(!payloads.length){ showToast('沒有變更'); return; }
+  if(!payloads.length){
+    btn.disabled = false; btn.innerHTML = prevHtml;
+    showToast('沒有變更');
+    updateNoteConfirmCount();
+    return;
+  }
 
   // 逐筆送出（不影響付款流程）
   const tasks = payloads.map(p => postMaybeOk({ action:'updateNote', ...p }));
   const results = await Promise.allSettled(tasks);
   let okCount = 0;
   results.forEach((r,i)=>{
-    if(r.status==='fulfilled' && r.value){ 
+    if(r.status==='fulfilled' && r.value){
       okCount++;
       // 更新本地 state
       const p = payloads[i];
@@ -1195,7 +1282,9 @@ async function saveNotes(){
       if(row){ row.confirm = p.confirm; row.pay_method = p.pay_method; row.note = p.note; }
     }
   });
+  btn.disabled = false; btn.innerHTML = prevHtml;
   showToast(okCount===payloads.length ? '已儲存註記 / Note saved' : `部分儲存失敗（成功 ${okCount}/${payloads.length}）`);
+  updateNoteConfirmCount();
 }
 
 /* ===== 啟動 & 錯誤攔截 ===== */
