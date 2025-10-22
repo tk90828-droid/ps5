@@ -99,11 +99,18 @@ button.primary:hover{filter:saturate(1.08);}
 .toast{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);background:#0f1117;border:1px solid #2b3244;color:#e5e7eb;padding:8px 12px;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.45);opacity:0;transition:opacity .25s;z-index:60}
 .toast.show{opacity:1}
 .backdrop{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.6);z-index:50}
-.modal{width:min(560px,92vw);background:#0f1117;border-radius:16px;border:1px solid #2b3244;padding:14px;box-shadow:0 20px 60px rgba(0,0,0,.5);position:relative}
-.modal .title2{margin:0 0 10px;font-size:18px;font-weight:800}
-.modal .rb{height:2px;background:var(--rainbow);opacity:.5;border-radius:2px;margin-bottom:10px}
-.modal .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:10px}
-/* —— 彈窗按鈕沿用「邀請函下載」按鈕的螢光外觀 —— */
+
+/* ★ Modal 內容可捲動，頂部/底部凍結（X 與 Close） */
+.modal{
+  width:min(560px,92vw);background:#0f1117;border-radius:16px;border:1px solid #2b3244;
+  padding:14px;box-shadow:0 20px 60px rgba(0,0,0,.5);position:relative;
+  max-height:92vh; display:flex; flex-direction:column; overflow:auto;
+}
+.mhead{position:sticky; top:0; z-index:2; background:#0f1117; margin:-14px -14px 10px; padding:10px 14px 8px; border-bottom:1px solid #2b3244; border-top-left-radius:16px; border-top-right-radius:16px;}
+.mfoot{position:sticky; bottom:0; z-index:2; background:#0f1117; margin:10px -14px -14px; padding:8px 14px 10px; border-top:1px solid #2b3244; border-bottom-left-radius:16px; border-bottom-right-radius:16px;}
+.modal .title2{margin:0;font-size:18px;font-weight:800}
+.modal .rb{height:2px;background:var(--rainbow);opacity:.5;border-radius:2px;margin-top:8px}
+.modal .actions{display:flex;gap:10px;justify-content:flex-end}
 .modal .actions .btn{
   border: none !important;
   background: rgba(0,255,209,.08) !important;
@@ -327,31 +334,35 @@ button.primary:hover{filter:saturate(1.08);}
 
 /* ====== 清單（Paid/Unpaid）欄寬可調（滑桿） ====== */
 .table-list{table-layout:fixed; width:100%}
+/* 更緊湊：清單表格字小、內距小，能顯示更多筆 */
+.table-list{font-size:12px}
+.table-list thead th{padding:6px 8px}
+.table-list tbody td{padding:4px 6px}
 .table-list col.c-time{width:96px}
-.table-list col.c-name{width:var(--listNameW,120px)}   /* ⬅ 新增：name 可調 */
+.table-list col.c-name{width:var(--listNameW,120px)}
 .table-list col.c-ig{width:var(--listIgW,120px)}
 .table-list col.c-leader{width:var(--listLeaderW,90px)}
 .table-list col.c-status{width:70px}
 
-/* 清單滑桿控制區（改為三行拉 bar） */
-#listCtrls{display:flex; flex-direction:column; gap:6px; margin:6px 0 8px;}
-.wrow{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
-.wrow label{font-size:12px; color:#9AA4AF; width:64px;}
-.wrow input[type="range"]{flex:1; min-width:160px;}
-.wrow .val{font-size:12px; color:#9AA4AF; width:56px; text-align:right;}
+/* 清單滑桿控制區（緊湊 & 可收合） */
+#listTopBar{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px;}
+#listCtrls{display:flex; flex-direction:column; gap:4px; margin:4px 0 8px;}
+.wrow{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.wrow label{font-size:11px; color:#9AA4AF; width:auto;}
+.wrow input[type="range"]{flex:1; min-width:120px;}
+.wrow .val{font-size:11px; color:#9AA4AF; width:44px; text-align:right;}
+#listToggleCtrl{font-size:12px; padding:4px 8px; border-radius:8px; border:1px solid #2b3244; background:#0f1117; color:#e5e7eb; cursor:pointer;}
 
 /* NOTE 標題旁總數樣式 */
 .note-ok{ color:var(--ok); font-weight:900; margin-left:6px; }
 
 /* 彈窗統一「右上角叉叉」樣式（置中顯示，無框、藍色發光） */
 .modal-close, .note-close{
-  position:absolute; right:10px; top:8px;
-  width:28px; height:28px;
-  border:none; border-radius:0;
-  background:transparent; 
-  color:#3B82F6; /* 實心藍 */
-  text-shadow: 0 0 8px rgba(59,130,246,.8), 0 0 14px rgba(59,130,246,.5); /* 光暈 */
-  cursor:pointer; display:grid; place-items:center; line-height:1; font-size:20px; font-weight:900;
+  position:sticky; top:8px; margin-left:auto; display:grid; place-items:center;
+  width:28px; height:28px; border:none; border-radius:0; background:transparent;
+  color:#3B82F6;
+  text-shadow: 0 0 8px rgba(59,130,246,.8), 0 0 14px rgba(59,130,246,.5);
+  cursor:pointer; line-height:1; font-size:20px; font-weight:900;
 }
 .modal-close:hover, .note-close:hover{ filter:brightness(1.1); border:none; }
 </style>
@@ -432,21 +443,27 @@ button.primary:hover{filter:saturate(1.08);}
   <span class="dot" aria-hidden="true"></span><span>總覽 Overview</span>
 </button>
 
-<!-- 付款彈窗（搜尋/QR 後直接開） -->
+<!-- 付款彈窗 -->
 <div id="payBackdrop" class="backdrop">
   <div class="modal">
-    <button class="modal-close" id="payCloseX" aria-label="Close">×</button>
-    <div class="title2">付款狀態 / Payment Status</div>
-    <div class="rb"></div>
+    <div class="mhead">
+      <button class="modal-close" id="payCloseX" aria-label="Close">×</button>
+      <div class="title2">付款狀態 / Payment Status</div>
+      <div class="rb"></div>
+    </div>
+
     <div id="payInfo"></div>
     <!-- 單選 + 送出 -->
     <div class="payopts">
       <div id="optUnpaid" class="opt" data-val="unpaid">未付款 / Unpaid</div>
       <div id="optPaid" class="opt" data-val="paid">已付款 / Paid</div>
     </div>
-    <div class="actions">
-      <button id="paySubmit" class="btn">送出 / Submit</button>
-      <button id="payClose" class="btn">關閉 / Close</button>
+
+    <div class="mfoot">
+      <div class="actions">
+        <button id="paySubmit" class="btn">送出 / Submit</button>
+        <button id="payClose" class="btn">關閉 / Close</button>
+      </div>
     </div>
   </div>
 </div>
@@ -454,32 +471,40 @@ button.primary:hover{filter:saturate(1.08);}
 <!-- ✅ 已繳費/未繳費清單 Modal -->
 <div id="listBackdrop" class="backdrop">
   <div class="modal" style="width:min(760px,94vw)">
-    <button class="modal-close" id="listCloseX" aria-label="Close">×</button>
-    <div id="listTitle" class="title2">清單</div>
-    <div class="rb"></div>
+    <div class="mhead">
+      <button class="modal-close" id="listCloseX" aria-label="Close">×</button>
+      <div id="listTopBar">
+        <div id="listTitle" class="title2">清單</div>
+        <button id="listToggleCtrl" title="顯示/收起欄寬調整">欄寬</button>
+      </div>
+      <div class="rb"></div>
 
-    <!-- ⬇ 改為三條滑桿（name / ig / leader），各成一行 -->
-    <div id="listCtrls">
-      <div class="wrow">
-        <label for="lNameRange">name 寬</label>
-        <input id="lNameRange" type="range" min="40" max="240" step="10">
-        <span id="lNameV" class="val">120px</span>
-      </div>
-      <div class="wrow">
-        <label for="lIgRange">ig 寬</label>
-        <input id="lIgRange" type="range" min="40" max="240" step="10">
-        <span id="lIgV" class="val">120px</span>
-      </div>
-      <div class="wrow">
-        <label for="lLeaderRange">leader 寬</label>
-        <input id="lLeaderRange" type="range" min="40" max="240" step="10">
-        <span id="lLeaderV" class="val">90px</span>
+      <!-- ⬇ 更緊湊的三條滑桿，可收合 -->
+      <div id="listCtrls">
+        <div class="wrow">
+          <label for="lNameRange">name</label>
+          <input id="lNameRange" type="range" min="40" max="240" step="10">
+          <span id="lNameV" class="val">120px</span>
+        </div>
+        <div class="wrow">
+          <label for="lIgRange">ig</label>
+          <input id="lIgRange" type="range" min="40" max="240" step="10">
+          <span id="lIgV" class="val">120px</span>
+        </div>
+        <div class="wrow">
+          <label for="lLeaderRange">leader</label>
+          <input id="lLeaderRange" type="range" min="40" max="240" step="10">
+          <span id="lLeaderV" class="val">90px</span>
+        </div>
       </div>
     </div>
 
     <div id="listBody" class="tablewrap"></div>
-    <div class="actions">
-      <button id="listClose" class="btn">關閉 / Close</button>
+
+    <div class="mfoot">
+      <div class="actions">
+        <button id="listClose" class="btn">關閉 / Close</button>
+      </div>
     </div>
   </div>
 </div>
@@ -487,52 +512,57 @@ button.primary:hover{filter:saturate(1.08);}
 <!-- ✅ NOTE Modal（需密碼） -->
 <div id="noteBackdrop" class="backdrop">
   <div class="modal" style="width:min(980px,96vw); position:relative">
-    <button class="note-close" id="noteCloseX" aria-label="Close">×</button> <!-- ✅ 右上角叉叉 -->
-    <div class="title2">註記 / Note <span id="noteCount" class="note-ok"></span></div>
-    <div class="rb"></div>
+    <div class="mhead">
+      <button class="note-close" id="noteCloseX" aria-label="Close">×</button>
+      <div class="title2">註記 / Note <span id="noteCount" class="note-ok"></span></div>
+      <div class="rb"></div>
 
-    <!-- 篩選/搜尋列（新版排版） -->
-    <div class="note-filters">
-      <!-- 第一行：搜尋/未繳費/展開/儲存（Save 置右） -->
-      <div class="nf-row1">
-        <input type="text" id="noteSearchName" placeholder="搜尋 name">
-        <input type="text" id="noteSearchIg" placeholder="搜尋 ig">
-        <label class="nf-check"><input type="checkbox" id="noteOnlyUnpaid"> 只看未繳費</label>
-        <button id="noteToggle" class="nf-tri" aria-expanded="false" title="更多設定"></button>
-        <button id="noteSave" class="nf-save" title="儲存 Note">Save</button>
-      </div>
-
-      <!-- 第二行：展開才顯示（僅保留 name/ig 欄寬調整；移除 leader 調整） -->
-      <div id="noteAdv" class="nf-adv" aria-hidden="true">
-        <div class="wctrl">
-          <span class="note-tight">name寬</span>
-          <div class="btncol">
-            <button id="wNameUp" class="wbtn" title="增加 name 欄寬">▲</button>
-            <button id="wNameDown" class="wbtn" title="減少 name 欄寬">▼</button>
-          </div>
-          <span id="wNameV" class="note-tight">60px</span>
-        </div>
-        <div class="wctrl">
-          <span class="note-tight">ig寬</span>
-          <div class="btncol">
-            <button id="wIgUp" class="wbtn" title="增加 ig 欄寬">▲</button>
-            <button id="wIgDown" class="wbtn" title="減少 ig 欄寬">▼</button>
-          </div>
-          <span id="wIgV" class="note-tight">80px</span>
+      <!-- 篩選/搜尋列（新版排版） -->
+      <div class="note-filters">
+        <!-- 第一行：搜尋/未繳費/展開/儲存（Save 置右） -->
+        <div class="nf-row1">
+          <input type="text" id="noteSearchName" placeholder="搜尋 name">
+          <input type="text" id="noteSearchIg" placeholder="搜尋 ig">
+          <label class="nf-check"><input type="checkbox" id="noteOnlyUnpaid"> 只看未繳費</label>
+          <button id="noteToggle" class="nf-tri" aria-expanded="false" title="更多設定"></button>
+          <button id="noteSave" class="nf-save" title="儲存 Note">Save</button>
         </div>
 
-        <!-- 欄位顯示（只留關鍵字） -->
-        <label><input type="checkbox" id="showFlag" checked> flag</label>
-        <label><input type="checkbox" id="showName" checked> name</label>
-        <label><input type="checkbox" id="showIg" checked> ig</label>
-        <label><input type="checkbox" id="showLeader"> leader</label>
-        <label><input type="checkbox" id="showStatus" checked> 繳費狀態</label>
+        <!-- 第二行：展開才顯示（僅保留 name/ig 欄寬調整；移除 leader 調整） -->
+        <div id="noteAdv" class="nf-adv" aria-hidden="true">
+          <div class="wctrl">
+            <span class="note-tight">name寬</span>
+            <div class="btncol">
+              <button id="wNameUp" class="wbtn" title="增加 name 欄寬">▲</button>
+              <button id="wNameDown" class="wbtn" title="減少 name 欄寬">▼</button>
+            </div>
+            <span id="wNameV" class="note-tight">60px</span>
+          </div>
+          <div class="wctrl">
+            <span class="note-tight">ig寬</span>
+            <div class="btncol">
+              <button id="wIgUp" class="wbtn" title="增加 ig 欄寬">▲</button>
+              <button id="wIgDown" class="wbtn" title="減少 ig 欄寬">▼</button>
+            </div>
+            <span id="wIgV" class="note-tight">80px</span>
+          </div>
+
+          <!-- 欄位顯示（只留關鍵字） -->
+          <label><input type="checkbox" id="showFlag" checked> flag</label>
+          <label><input type="checkbox" id="showName" checked> name</label>
+          <label><input type="checkbox" id="showIg" checked> ig</label>
+          <label><input type="checkbox" id="showLeader"> leader</label>
+          <label><input type="checkbox" id="showStatus" checked> 繳費狀態</label>
+        </div>
       </div>
     </div>
 
     <div id="noteTableWrap" class="tablewrap"></div>
-    <div class="actions">
-      <button id="noteClose" class="btn">關閉 / Close</button>
+
+    <div class="mfoot">
+      <div class="actions">
+        <button id="noteClose" class="btn">關閉 / Close</button>
+      </div>
     </div>
   </div>
 </div>
@@ -982,6 +1012,13 @@ document.addEventListener('click', (e)=>{
   if(noteChip){ openNoteModal(); } // NOTE 功能入口
 });
 
+$('listToggleCtrl').addEventListener('click', ()=>{
+  const ctrls = $('listCtrls');
+  if(!ctrls) return;
+  const show = ctrls.style.display !== 'none';
+  ctrls.style.display = show ? 'none' : 'flex';
+});
+
 function openListModal(kind){
   if(!state.rows.length){ showToast('名單未就緒 / Roster not ready'); return; }
   if(kind==='paid'){
@@ -1232,7 +1269,7 @@ function renderNoteTable(){
   updateNoteConfirmCount();
 }
 
-/* ===== NOTE 儲存（改為手動 Save，含 loading 圈） ===== */
+/* ===== NOTE 儲存（先試批次，失敗再逐筆） ===== */
 $('noteSave').addEventListener('click', saveNotes);
 
 async function saveNotes(){
@@ -1269,17 +1306,35 @@ async function saveNotes(){
     return;
   }
 
-  const tasks = payloads.map(p => postMaybeOk({ action:'updateNote', ...p }));
-  const results = await Promise.allSettled(tasks);
-  let okCount = 0;
-  results.forEach((r,i)=>{
-    if(r.status==='fulfilled' && r.value){
-      okCount++;
-      const p = payloads[i];
-      const row = state.indexByItem.get(String(p.item));
-      if(row){ row.confirm = p.confirm; row.pay_method = p.pay_method; row.note = p.note; }
+  // ① 嘗試「單次批次」送出（後端若支援會更快）
+  let okCount = 0, bulkTried = false, bulkOK = false;
+  try{
+    bulkTried = true;
+    const bulk = { action:'updateNotes', items: payloads }; // 以 item 為唯一鍵
+    bulkOK = await postMaybeOk(bulk);
+    if(bulkOK){
+      okCount = payloads.length;
+      for(const p of payloads){
+        const row = state.indexByItem.get(String(p.item));
+        if(row){ row.confirm = p.confirm; row.pay_method = p.pay_method; row.note = p.note; }
+      }
     }
-  });
+  }catch(_){ /* 忽略，走 fallback */ }
+
+  // ② 若批次不支援，fallback：逐筆平行
+  if(!bulkOK){
+    const tasks = payloads.map(p => postMaybeOk({ action:'updateNote', ...p }));
+    const results = await Promise.allSettled(tasks);
+    results.forEach((r,i)=>{
+      if(r.status==='fulfilled' && r.value){
+        okCount++;
+        const p = payloads[i];
+        const row = state.indexByItem.get(String(p.item));
+        if(row){ row.confirm = p.confirm; row.pay_method = p.pay_method; row.note = p.note; }
+      }
+    });
+  }
+
   btn.disabled = false; btn.innerHTML = prevHtml;
   showToast(okCount===payloads.length ? '已儲存註記 / Note saved' : `部分儲存失敗（成功 ${okCount}/${payloads.length}）`);
   updateNoteConfirmCount();
@@ -1298,5 +1353,3 @@ fetchRoster();
 </script>
 </body>
 </html>
-
-
