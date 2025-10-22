@@ -201,13 +201,15 @@ button.primary:hover{filter:saturate(1.08);}
 .table .status-unpaid{color:#fca5a5;font-weight:800}
 
 /* ===== NOTE Modal ===== */
-.note-filters{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.note-filters{
+  display:flex;gap:8px;flex-wrap:wrap;margin:8px 0;align-items:center
+}
 .note-filters input[type="text"]{
   padding:4px 8px; /* 高度約減半 */
   border-radius:10px;
-  border:1px solid #e5e7eb;           /* 明顯外框 */
-  background:#ffffff;                  /* 白底 */
-  color:#0b0c10;                       /* 深色字 */
+  border:1px solid #e5e7eb;
+  background:#ffffff;
+  color:#0b0c10;
   width:180px
 }
 .note-filters label{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#9AA4AF;white-space:nowrap}
@@ -217,9 +219,17 @@ button.primary:hover{filter:saturate(1.08);}
 .note-select{background:#0f1117;border:1px solid #2b3244;color:#e5e7eb;border-radius:8px;padding:6px 8px;min-width:88px;max-width:140px}
 .note-input{background:#0f1117;border:1px solid #2b3244;color:#e5e7eb;border-radius:8px;padding:6px 8px;width:100%}
 
+/* 上下按鈕的欄寬控制（節省空間） */
+.wctrl{display:inline-flex;align-items:center;gap:6px}
+.wctrl .btncol{display:flex;flex-direction:column;gap:2px}
+.wbtn{
+  padding:4px 6px;border-radius:8px;border:1px solid #2b3244;background:#0f1117;color:#e5e7eb;
+  font-size:11px;line-height:1;cursor:pointer
+}
+
 /* ✅ NOTE 表格更緊湊 */
-.table-note{table-layout:fixed}
-.table-note th,.table-note td{ padding:4px 6px; } /* 整體更緊湊 */
+.table-note{table-layout:fixed; width:100%}
+.table-note th,.table-note td{ padding:4px 6px; }
 .table-note th.note-tight,.table-note td.note-tight{
   padding:3px 6px;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
@@ -230,7 +240,7 @@ button.primary:hover{filter:saturate(1.08);}
 .table-note col.c-name{width:var(--nameW,120px)}
 .table-note col.c-ig{width:var(--igW,140px)}
 .table-note col.c-leader{width:110px}
-.table-note col.c-status{width:64px}     /* 繳費狀態更緊湊 */
+.table-note col.c-status{width:64px}
 .table-note col.c-confirm{width:72px}
 .table-note col.c-method{width:110px}
 .table-note col.c-note{width:auto}
@@ -254,6 +264,17 @@ button.primary:hover{filter:saturate(1.08);}
 
 /* ✅ 繳費狀態欄：置中顯示勾/叉 */
 .table-note td.status-cell{font-size:12px;white-space:nowrap;text-align:center}
+
+/* 📱 手機排版保證不錯位 */
+@media (max-width:640px){
+  .note-filters{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    align-items:center
+  }
+  .note-small{grid-column:1/-1; margin-left:0}
+  .tablewrap{max-width:100%; overflow:auto}
+}
 </style>
 </head>
 <body>
@@ -366,22 +387,34 @@ button.primary:hover{filter:saturate(1.08);}
     <div class="title2">註記 / Note（全域共用）</div>
     <div class="rb"></div>
 
-    <!-- 篩選/搜尋列 -->
+    <!-- 篩選/搜尋列：改用「上下按鈕」調欄寬，預設不顯示 leader -->
     <div class="note-filters">
       <input type="text" id="noteSearchName" placeholder="搜尋 name">
       <input type="text" id="noteSearchIg" placeholder="搜尋 ig">
       <label><input type="checkbox" id="noteOnlyUnpaid"> 只看未繳費</label>
 
-      <!-- ▼ 新增：欄寬調整 & 欄位顯示切換 -->
-      <label>name寬 <input type="range" id="wName" min="30" max="200" value="120"></label>
-      <span id="wNameV" class="note-tight">120px</span>
-      <label>ig寬 <input type="range" id="wIg" min="30" max="200" value="140"></label>
-      <span id="wIgV" class="note-tight">140px</span>
+      <div class="wctrl">
+        <span class="note-tight">name寬</span>
+        <div class="btncol">
+          <button id="wNameUp" class="wbtn" title="增加 name 欄寬">▲</button>
+          <button id="wNameDown" class="wbtn" title="減少 name 欄寬">▼</button>
+        </div>
+        <span id="wNameV" class="note-tight">120px</span>
+      </div>
+
+      <div class="wctrl">
+        <span class="note-tight">ig寬</span>
+        <div class="btncol">
+          <button id="wIgUp" class="wbtn" title="增加 ig 欄寬">▲</button>
+          <button id="wIgDown" class="wbtn" title="減少 ig 欄寬">▼</button>
+        </div>
+        <span id="wIgV" class="note-tight">140px</span>
+      </div>
 
       <label><input type="checkbox" id="showFlag" checked> 顯示flag</label>
       <label><input type="checkbox" id="showName" checked> 顯示name</label>
       <label><input type="checkbox" id="showIg" checked> 顯示ig</label>
-      <label><input type="checkbox" id="showLeader" checked> 顯示leader</label>
+      <label><input type="checkbox" id="showLeader"> 顯示leader</label>
       <label><input type="checkbox" id="showStatus" checked> 顯示繳費狀態</label>
 
       <div class="note-small">修改即自動儲存，不影響繳費送出時間</div>
@@ -418,6 +451,8 @@ const state = {
   ovHidden: false,       // 概覽是否收合
   /* NOTE 功能 */
   noteAuthed: false,     // 是否通過 NOTE 密碼
+  nameW: 120,            // NOTE 欄寬（用按鈕調整）
+  igW: 140
 };
 const hiddenLeaders = new Set();
 const RAINBOW = ['#EF4444','#F59E0B','#FACC15','#22C55E','#3B82F6','#8B5CF6'];
@@ -932,11 +967,26 @@ noteBackdrop.addEventListener('click', (e)=>{ if(e.target===noteBackdrop) noteBa
 $('noteOnlyUnpaid').addEventListener('change', renderNoteTable);
 $('noteSearchName').addEventListener('input', renderNoteTable);
 $('noteSearchIg').addEventListener('input', renderNoteTable);
-/* 新增事件：欄寬與欄位顯示切換 */
+/* 仍保留原本監聽（不存在就略過），再加上新按鈕監聽 */
 ['wName','wIg','showFlag','showName','showIg','showLeader','showStatus'].forEach(id=>{
   $(id)?.addEventListener('input', renderNoteTable);
   $(id)?.addEventListener('change', renderNoteTable);
 });
+
+/* 新增：上下按鈕控制欄寬（30~200，步進10） */
+function adjustWidth(kind, delta){
+  const min=30, max=200, step=10;
+  if(kind==='name'){
+    state.nameW = Math.max(min, Math.min(max, state.nameW + (delta>0?step:-step)));
+  }else{
+    state.igW = Math.max(min, Math.min(max, state.igW + (delta>0?step:-step)));
+  }
+  renderNoteTable();
+}
+$('wNameUp')?.addEventListener('click', ()=>adjustWidth('name', +1));
+$('wNameDown')?.addEventListener('click', ()=>adjustWidth('name', -1));
+$('wIgUp')?.addEventListener('click', ()=>adjustWidth('ig', +1));
+$('wIgDown')?.addEventListener('click', ()=>adjustWidth('ig', -1));
 
 function openNoteModal(){
   // 一次密碼驗證即可（前端簡易防護；真正保護請在 GAS 再驗一次）
@@ -965,8 +1015,8 @@ function renderNoteTable(){
   rows.sort((a,b)=> (a.leader||'').localeCompare(b.leader||'') || (a.name||'').localeCompare(b.name||''));
 
   // 讀取 UI 設定（欄寬 & 顯示）
-  const nameW = Number($('wName')?.value || 120);
-  const igW   = Number($('wIg')?.value || 140);
+  const nameW = Number($('wName')?.value || state.nameW || 120);
+  const igW   = Number($('wIg')?.value   || state.igW   || 140);
   $('wNameV').textContent = nameW + 'px';
   $('wIgV').textContent = igW + 'px';
 
@@ -982,7 +1032,7 @@ function renderNoteTable(){
     <col class="c-status"><col class="c-confirm"><col class="c-method"><col class="c-note">
   </colgroup>`;
 
-  // 建構表頭（flag/name/ig/leader 使用 note-tight）
+  // 表頭
   const th = `<thead><tr>
     <th class="note-tight">flag</th>
     <th class="note-tight">name</th>
