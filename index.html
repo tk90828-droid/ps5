@@ -1,4 +1,4 @@
-<!doctype html>
+<!doctype html> 
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8" />
@@ -219,25 +219,29 @@ button.primary:hover{filter:saturate(1.08);}
 
 /* ===== NOTE Modal ===== */
 .note-filters{ display:flex;flex-direction:column;gap:6px;margin:8px 0;align-items:flex-start }
-/* 第一行：搜尋與只看未繳費 + 三角切換 */
+/* 第一行：搜尋與只看未繳費 + 三角切換 + Save */
 .nf-row1{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .note-filters input[type="text"]{
   padding:4px 8px; border-radius:10px; border:1px solid #e5e7eb; background:#ffffff; color:#0b0c10;
   width:140px; /* 短一點的 bar */ max-width:42vw;
 }
 .note-filters label{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#9AA4AF;white-space:nowrap}
-/* ✅ 將 NOTE 的 checkbox 縮小 50% 並置中對齊 */
-.note-filters input[type="checkbox"]{width:8px;height:8px;vertical-align:middle}
+/* ✅ NOTE 的 checkbox：桌機 10×10，置中對齊 */
+.note-filters input[type="checkbox"]{width:10px;height:10px;vertical-align:middle}
 
 .nf-tri{ border:1px solid #2b3244; background:#0f1117; color:#e5e7eb; padding:4px 8px; border-radius:8px; cursor:pointer; line-height:1; font-size:12px; }
 .nf-tri[aria-expanded="true"]::after{ content:" ▾"; }
 .nf-tri[aria-expanded="false"]::after{ content:" ▸"; }
 
+/* Save 按鈕（靠右） */
+.nf-save{ margin-left:auto; border:1px solid #2b3244; background:#0f1117; color:#e5e7eb; padding:4px 10px; border-radius:8px; cursor:pointer; font-weight:800; font-size:12px; }
+.nf-save:hover{ border-image:var(--rainbow) 1; border-width:1px; border-style:solid; }
+
 /* 第二行：進階（收合用） */
 .nf-adv{display:none; align-items:center; gap:10px; flex-wrap:wrap}
 .nf-adv.show{display:flex;}
 .note-tight{white-space:nowrap}
-.note-checkbox{width:8px;height:8px;cursor:pointer} /* ✅ 小一點 */
+.note-checkbox{width:10px;height:10px;cursor:pointer} /* ✅ 桌機 10×10 */
 .note-select{background:#0f1117;border:1px solid #2b3244;color:#e5e7eb;border-radius:8px;padding:6px 8px;min-width:88px;max-width:140px}
 .note-input{background:#0f1117;border:1px solid #2b3244;color:#e5e7eb;border-radius:8px;padding:6px 8px;width:100%}
 
@@ -283,13 +287,14 @@ button.primary:hover{filter:saturate(1.08);}
 .table-note.hide-status thead th:nth-child(5),
 .table-note.hide-status tbody td:nth-child(5){display:none}
 
-/* ✅ 繳費狀態欄：置中顯示勾/叉（NOTE 表格） */
+/* ✅ NOTE 繳費欄：表頭＋內文整欄置中 */
+.table-note thead th.status-head{ text-align:center; }
 .table-note td.status-cell{font-size:12px;white-space:nowrap;text-align:center}
 
 /* ✅ NOTE：IG 欄位顯示大寫 */
 .table-note tbody td:nth-child(3){ text-transform:uppercase; }
 
-/* 📱 手機：把 NOTE 改成「全螢幕頁」＋ 置頂搜尋列，避免被視窗裁切 */
+/* 📱 手機：把 NOTE 改成「全螢幕頁」＋ 置頂搜尋列，並把 NOTE 勾選縮小 */
 @media (max-width:640px){
   #noteBackdrop{align-items:stretch; justify-content:stretch;}
   #noteBackdrop .modal{
@@ -302,7 +307,8 @@ button.primary:hover{filter:saturate(1.08);}
   /* 第一行三項剛好排滿 */
   .nf-row1{display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:8px;}
   .note-filters input[type="text"]{width:100%; max-width:100%;}
-  .note-small{margin-left:0}
+  .note-filters input[type="checkbox"]{width:8px;height:8px;} /* ✅ 手機縮小 */
+  .note-checkbox{width:8px;height:8px;} /* ✅ 手機縮小 */
 }
 
 /* ✅ 隱藏 NOTE 進階欄位的像素讀數（仍可調整） */
@@ -436,12 +442,13 @@ button.primary:hover{filter:saturate(1.08);}
 
     <!-- 篩選/搜尋列（新版排版） -->
     <div class="note-filters">
-      <!-- 第一行：三項剛好一排 -->
+      <!-- 第一行：搜尋/未繳費/展開/儲存（Save 置右） -->
       <div class="nf-row1">
         <input type="text" id="noteSearchName" placeholder="搜尋 name">
         <input type="text" id="noteSearchIg" placeholder="搜尋 ig">
         <label class="nf-check"><input type="checkbox" id="noteOnlyUnpaid"> 只看未繳費</label>
         <button id="noteToggle" class="nf-tri" aria-expanded="false" title="更多設定"></button>
+        <button id="noteSave" class="nf-save" title="儲存 Note">Save</button>
       </div>
 
       <!-- 第二行：展開才顯示（加入 IG/Leader 欄寬調整） -->
@@ -478,8 +485,6 @@ button.primary:hover{filter:saturate(1.08);}
         <label><input type="checkbox" id="showLeader"> leader</label>
         <label><input type="checkbox" id="showStatus" checked> 繳費狀態</label>
       </div>
-
-      <div class="note-small">修改即自動儲存，不影響繳費送出時間</div>
     </div>
 
     <div id="noteTableWrap" class="tablewrap"></div>
@@ -514,7 +519,8 @@ const state = {
   /* NOTE 功能（預設欄寬） */
   nameW: 60,
   igW: 80,
-  leaderW: 80
+  leaderW: 80,
+  noteAuthed: false
 };
 const hiddenLeaders = new Set();
 const RAINBOW = ['#EF4444','#F59E0B','#FACC15','#22C55E','#3B82F6','#8B5CF6'];
@@ -1059,7 +1065,7 @@ function openNoteModal(){
   noteBackdrop.style.display='flex';
 }
 
-/* NOTE 表格渲染 */
+/* NOTE 表格渲染（改為：只渲染，不自動儲存） */
 function renderNoteTable(){
   if(!state.rows.length){
     noteTableWrap.innerHTML = '<div class="leader-meta">尚未載入名單 / Not loaded</div>';
@@ -1097,13 +1103,13 @@ function renderNoteTable(){
     <col class="c-status"><col class="c-confirm"><col class="c-method"><col class="c-note">
   </colgroup>`;
 
-  // 表頭
+  // 表頭（繳費表頭置中）
   const th = `<thead><tr>
     <th class="note-tight">flag</th>
     <th class="note-tight">name</th>
     <th class="note-tight">ig</th>
     <th class="note-tight">leader</th>
-    <th class="note-tight">繳費</th>
+    <th class="note-tight status-head">繳費</th>
     <th class="note-tight">確認</th>
     <th class="note-tight">方式</th>
     <th class="note-tight">備註</th>
@@ -1146,39 +1152,50 @@ function renderNoteTable(){
   tableEl.classList.toggle('hide-ig', !showIg);
   tableEl.classList.toggle('hide-leader', !showLeader);
   tableEl.classList.toggle('hide-status', !showStatus);
-
-  // 事件委派：checkbox/select/input → 即時儲存
-  noteTableWrap.querySelector('tbody')?.addEventListener('change', handleNoteChange, { once:true });
-  noteTableWrap.querySelector('tbody')?.addEventListener('input', handleNoteInput, { once:true });
 }
 
-// input 輸入時稍微防抖
-let _noteInputTimer = null;
-function handleNoteInput(e){ clearTimeout(_noteInputTimer); _noteInputTimer = setTimeout(()=> handleNoteChange(e), 250); }
+/* ===== NOTE 儲存（改為手動 Save） ===== */
+$('noteSave').addEventListener('click', saveNotes);
 
-async function handleNoteChange(e){
-  const tr = e.target.closest('tr[data-item]');
-  if(!tr) return;
-  const item = tr.getAttribute('data-item');
-  const confirmEl = tr.querySelector('.note-checkbox');
-  const selectEl = tr.querySelector('.note-select');
-  const inputEl = tr.querySelector('.note-input');
-  const confirmVal = !!(confirmEl && confirmEl.checked);
-  const methodVal = selectEl ? selectEl.value : '';
-  const noteVal = inputEl ? inputEl.value : '';
+async function saveNotes(){
+  const tbody = noteTableWrap.querySelector('tbody');
+  if(!tbody){ showToast('無可儲存資料'); return; }
+  const rows = Array.from(tbody.querySelectorAll('tr[data-item]'));
+  const payloads = [];
+  for(const tr of rows){
+    const item = tr.getAttribute('data-item');
+    const confirmEl = tr.querySelector('.note-checkbox');
+    const selectEl = tr.querySelector('.note-select');
+    const inputEl = tr.querySelector('.note-input');
+    const confirmVal = !!(confirmEl && confirmEl.checked);
+    const methodVal = selectEl ? selectEl.value : '';
+    const noteVal = inputEl ? inputEl.value : '';
 
-  // 本地更新
-  const row = state.indexByItem.get(String(item));
-  if(row){ row.confirm = confirmVal; row.pay_method = methodVal; row.note = noteVal; }
-
-  // 後端持久化（全域一致）
-  try{
-    const ok = await postMaybeOk({ action:'updateNote', item, confirm:confirmVal, pay_method:methodVal, note:noteVal });
-    if(!ok) throw new Error('SERVER_NOK');
-    showToast('已儲存註記 / Note saved');
-  }catch(err){
-    console.error(err); showToast('儲存失敗 / Save failed');
+    // 與 state 比對，只送有變更的
+    const row = state.indexByItem.get(String(item));
+    if(!row) continue;
+    const changed = (row.confirm !== confirmVal) || (row.pay_method !== methodVal) || (row.note !== noteVal);
+    if(changed){
+      payloads.push({ item, confirm:confirmVal, pay_method:methodVal, note:noteVal });
+    }
   }
+
+  if(!payloads.length){ showToast('沒有變更'); return; }
+
+  // 逐筆送出（不影響付款流程）
+  const tasks = payloads.map(p => postMaybeOk({ action:'updateNote', ...p }));
+  const results = await Promise.allSettled(tasks);
+  let okCount = 0;
+  results.forEach((r,i)=>{
+    if(r.status==='fulfilled' && r.value){ 
+      okCount++;
+      // 更新本地 state
+      const p = payloads[i];
+      const row = state.indexByItem.get(String(p.item));
+      if(row){ row.confirm = p.confirm; row.pay_method = p.pay_method; row.note = p.note; }
+    }
+  });
+  showToast(okCount===payloads.length ? '已儲存註記 / Note saved' : `部分儲存失敗（成功 ${okCount}/${payloads.length}）`);
 }
 
 /* ===== 啟動 & 錯誤攔截 ===== */
