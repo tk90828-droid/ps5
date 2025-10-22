@@ -1,4 +1,4 @@
-<!doctype html>  
+<!doctype html>   
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8" />
@@ -265,15 +265,36 @@ button.primary:hover{filter:saturate(1.08);}
 /* ✅ 繳費狀態欄：置中顯示勾/叉 */
 .table-note td.status-cell{font-size:12px;white-space:nowrap;text-align:center}
 
-/* 📱 手機排版保證不錯位 */
+/* 📱 手機：把 NOTE 改成「全螢幕頁」＋ 置頂搜尋列，避免被視窗裁切 */
 @media (max-width:640px){
+  /* 讓 NOTE 視窗改成貼齊螢幕的全高全寬 */
+  #noteBackdrop{align-items:stretch; justify-content:stretch;}
+  #noteBackdrop .modal{
+    width:100vw; height:100vh; max-width:none; max-height:none;
+    border-radius:0; border-left:none; border-right:none;
+    padding:10px 10px 0;
+    display:flex; flex-direction:column;
+  }
+  /* 搜尋列固定在頂端，永遠看得到 */
+  #noteBackdrop .note-filters{
+    position:sticky; top:0; z-index:2;
+    background:#0f1117;
+    padding-top:6px; padding-bottom:8px;
+    border-bottom:1px solid #2b3244;
+  }
+  /* 內容表格吃滿剩餘高度，獨立滾動；保留橫向卷軸以免擠壓錯位 */
+  #noteBackdrop .tablewrap{
+    flex:1; max-height:none; min-height:0;
+    overflow:auto; /* 同時支援直向與橫向捲動 */
+  }
+  /* 小螢幕的過濾欄排版 */
   .note-filters{
     display:grid;
     grid-template-columns:repeat(2,minmax(0,1fr));
-    align-items:center
+    align-items:center;
+    gap:8px;
   }
   .note-small{grid-column:1/-1; margin-left:0}
-  .tablewrap{max-width:100%; overflow:auto}
 }
 </style>
 </head>
@@ -1142,4 +1163,3 @@ fetchRoster();
 </script>
 </body>
 </html>
-
