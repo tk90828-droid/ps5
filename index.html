@@ -1,13 +1,9 @@
-<!doctype html>
+<!doctype html> 
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Taiwan Pride 🌈｜Reservation Payment｜10/24 週五晚餐名單</title>
-
-<!-- === [ZXING] iOS 連續掃描後備（BarcodeDetector 不支援時） -->
-<script src="https://unpkg.com/@zxing/library@0.20.0"></script>
-
 <style>
   :root{
     /* S2 風格色盤 */
@@ -46,7 +42,7 @@
   .input-wrap{display:flex;flex-direction:column;min-width:0}
   input,button,select{
     width:100%;padding:11px 12px;border-radius:12px;border:1px solid var(--border);
-    background:#0f1117;color:#0fffd1; /* 遵循舊版連結按鈕字色 */
+    background:#0f1117;color:#0fffd1;
     outline:none;font-size:14px
   }
   input{ color:var(--fg); }
@@ -54,14 +50,14 @@
   button.primary{background:var(--btn-grad);border:0;color:#0b0c10;font-weight:900;letter-spacing:.2px}
   button.primary:hover{filter:saturate(1.08);}
 
-  /* 統計列（頁面上方，保留中英） */
+  /* 統計列 */
   .stats{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 6px}
   .chip{display:flex;align-items:center;gap:8px;background:#0f1117;border:1px solid #2b3244;border-radius:999px;padding:6px 10px}
   .chip .dot{width:8px;height:8px;border-radius:50%}
   .chip.total .dot{background:#a3e635}
   .chip.paid .dot{background:#22c55e}
   .chip.unpaid .dot{background:#ef4444}
-  .chip .lab{font-size:12px;color:var(--muted)}
+  .chip .lab{font-size:12px;color:#aeb7c2}
   .chip .num{font-size:13px;color:#fff;min-width:16px;text-align:right}
 
   /* 結果列表 */
@@ -75,7 +71,7 @@
   .ig{font-size:13px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .country{opacity:.6}
 
-  /* 金色漸層（沿用舊樣式） */
+  /* 金色漸層 */
   .goldtext{
     background: linear-gradient(180deg,#EAD28A 0%,#D9B550 35%,#B98A32 70%,#7A6027 100%);
     -webkit-background-clip: text; background-clip: text; color: transparent;
@@ -102,35 +98,13 @@
   .toast{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);background:#0f1117;border:1px solid #2b3244;color:#e5e7eb;padding:8px 12px;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.45);opacity:0;transition:opacity .25s;z-index:60}
   .toast.show{opacity:1}
   .backdrop{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.6);z-index:50}
-  .modal{width:min(560px,92vw);background:#0f1117;border-radius:16px;border:1px solid #2b3244;padding:14px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .modal{width:min(720px,92vw);background:#0f1117;border-radius:16px;border:1px solid #2b3244;padding:14px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
   .modal .title2{margin:0 0 10px;font-size:18px;font-weight:800}
   .modal .rb{height:2px;background:var(--rainbow);opacity:.5;border-radius:2px;margin-bottom:10px}
   .modal .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:10px}
-
-  /* —— 彈窗按鈕沿用「邀請函下載」按鈕的螢光外觀 —— */
-  .modal .actions .btn{
-    border: none !important;
-    background: rgba(0,255,209,.08) !important;
-    box-shadow: 0 0 0 1px rgba(0,255,209,.25),
-                0 0 18px rgba(0,255,209,.18) inset,
-                0 0 20px rgba(0,255,209,.15) !important;
-    color: #e5e7eb !important;
-    font-weight: 800 !important;
-    padding: 6px 9px !important;
-    border-radius: 10px !important;
-    cursor:pointer;
-  }
-  .modal .actions .btn:hover{
-    background: rgba(0,255,209,.08) !important;
-    box-shadow: 0 0 0 1px rgba(0,255,209,.35),
-                0 0 22px rgba(0,255,209,.22) inset,
-                0 0 24px rgba(0,255,209,.20) !important;
-    border: 1px solid transparent !important;
-    border-image: var(--rainbow) 1 !重要;
-  }
   .btn{padding:8px 10px;border-radius:12px;border:1px solid #2b3244;background:#0f1117;color:#e5e7eb;font-weight:800;cursor:pointer}
 
-  /* 付款彈窗內的單選選項 */
+  /* 付款彈窗內的單選 */
   .payopts{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
   .opt{flex:1;min-width:160px;text-align:center;padding:10px;border-radius:12px;border:1px dashed #2b3244;cursor:pointer;background:#0f1117;color:#9aa4af;font-weight:900}
   .opt.active{border:0;background:var(--btn-grad);color:#0b0c10}
@@ -167,7 +141,7 @@
   .mini .m-name{font-size:12px;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .mini .m-ig{font-size:11px;color:#9AA4AF;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-  /* 概覽顯示/隱藏控制：六色彩虹按鈕（收合時才出現） */
+  /* 總覽收合切換 */
   .ov-toggle{
     position:fixed;left:50%;bottom:12px;transform:translateX(-50%);
     display:none;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;
@@ -177,37 +151,23 @@
     width:12px;height:12px;border-radius:999px;background:conic-gradient(#EF4444,#F59E0B,#FACC15,#22C55E,#3B82F6,#8B5CF6,#EF4444);
     box-shadow:0 0 10px rgba(255,255,255,.08) inset, 0 2px 8px rgba(0,0,0,.35);
   }
-  .ov-toggle:hover{border-image:var(--rainbow) 1;border-width:1px;border-style:solid}
+  .ov-toggle:hover{border-image:var(--rainbow) 1;border-width:1;border-style:solid}
 
-  /* 個別隱藏列（六色彩虹圓點恢復） */
+  /* 個別隱藏列 */
   #ovHiddenBar{display:none;margin-top:8px;padding:8px 10px;border-top:1px solid #2b3244;background:#0f1117;border-radius:12px}
   #ovHiddenTop{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap;margin-bottom:6px}
   #ovHiddenList{display:flex;flex-wrap:wrap;gap:12px;max-height:96px;overflow:auto;padding:2px 0 6px}
   .hchip{display:flex;align-items:center;gap:8px}
   .hchip .dot{width:14px;height:14px;border-radius:999px;box-shadow:0 0 0 1px #2b3244 inset, 0 2px 8px rgba(0,0,0,.35);cursor:pointer}
   .hchip .label{font-size:11px;color:#9AA4AF;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-
-  .leader-hide{
-    position:static;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    width:24px;
-    height:24px;
-    border:none;
-    background:transparent;
-    color:#9AA4AF;
-    cursor:pointer;
-    font-size:16px;
-    line-height:1;
-    transition:filter .15s ease;
-  }
+  .leader-hide{position:static;display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:none;background:transparent;color:#9AA4AF;cursor:pointer;font-size:16px;line-height:1}
   .leader-hide:hover{filter:drop-shadow(0 0 6px rgba(255,255,255,.15))}
 
-  .fabrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
-  .fab{padding:10px 12px;border-radius:12px;border:1px solid(var(--border));background:#0f1117;color:#e5e7eb;font-weight:800;cursor:pointer;}
-  .fab.primary{background:var(--btn-grad);color:#0b0c10;border:0;}
+  .fabrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .fab{padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:#0f1117;color:#e5e7eb;font-weight:800;cursor:pointer}
+  .fab.primary{background:var(--btn-grad);color:#0b0c10;border:0}
 
+  /* Spinner */
   .spinner{display:inline-block;width:14px;height:14px;margin-left:8px;vertical-align:-2px;border:2px solid rgba(255,255,255,.18);border-top-color:#a7f3d0;border-radius:50%;animation:spin .9s linear infinite;box-shadow:0 0 10px rgba(167,243,208,.35)}
   @keyframes spin{to{transform:rotate(360deg)}}
 
@@ -216,16 +176,12 @@
     .fabrow{justify-content:flex-start}
   }
 
-  /* === [SCAN] 最小掃描狀態列（可停用掃描；不干擾版面） === */
-  .scanbar{
-    position:fixed; right:12px; bottom:12px; z-index:45;
-    display:none; align-items:center; gap:8px;
-    background:#0f1117; border:1px solid #2b3244; border-radius:999px; padding:6px 10px;
-  }
-  .scanbar .txt{font-size:12px; color:#C7CED6}
-  .scanbar .dot{width:8px; height:8px; border-radius:50%; background:#22c55e; box-shadow:0 0 8px rgba(34,197,94,.6)}
-  .scanbar .btn-mini{padding:4px 8px; font-size:12px; border-radius:8px; border:1px solid #2b3244; background:#0f1117; color:#e5e7eb; cursor:pointer}
-  .scanbar .btn-mini:hover{border-image:var(--rainbow) 1; border-width:1px; border-style:solid}
+  /* ★ 新增：紀錄/名單表格（簡潔） */
+  .log-wrap{max-height:60vh;overflow:auto;border:1px solid #2b3244;border-radius:10px}
+  .log-table{width:100%;border-collapse:collapse;font-size:13px}
+  .log-table thead th{position:sticky;top:0;background:#0f1117;border-bottom:1px solid #2b3244;padding:8px 10px;text-align:left;color:#c7ced6}
+  .log-table td{border-bottom:1px dashed #2b3244;padding:8px 10px;white-space:nowrap}
+  .log-empty{color:#9AA4AF;padding:6px 2px}
 </style>
 </head>
 <body>
@@ -276,7 +232,7 @@
   </div>
   <div id="grid" class="grid"></div>
 
-  <!-- 概覽 -->
+  <!-- 總覽 -->
   <div id="ovSection" class="ov-section">
     <div class="leader-head" style="margin-bottom:6px">
       <div class="leader-name overview">總覽 / Overview</div>
@@ -294,7 +250,7 @@
   </div>
 </div>
 
-<!-- 收合時顯示的六色彩虹開關 -->
+<!-- 總覽收合按鈕 -->
 <button id="btnOvShow" class="ov-toggle" title="顯示總覽 / Show Overview">
   <span class="dot" aria-hidden="true"></span><span>總覽 Overview</span>
 </button>
@@ -317,18 +273,22 @@
   </div>
 </div>
 
-<!-- 隱藏的檔案 input 供「QR 圖片備援」 -->
-<input id="qrFile" type="file" accept="image/*" style="display:none" />
-
-<!-- === [SCAN] 極小掃描狀態列（可停止） -->
-<div id="scanBar" class="scanbar">
-  <span class="dot" aria-hidden="true"></span>
-  <span class="txt">掃描中… 將 QR 對準鏡頭</span>
-  <button id="scanStop" class="btn-mini">停止</button>
+<!-- ★ 新增：紀錄/未繳名單通用彈窗 -->
+<div id="logBackdrop" class="backdrop">
+  <div class="modal">
+    <div class="title2" id="logTitle">紀錄</div>
+    <div class="rb"></div>
+    <div id="logBody">
+      <!-- 動態填入表格 -->
+    </div>
+    <div class="actions">
+      <button id="logClose" class="btn">關閉 / Close</button>
+    </div>
+  </div>
 </div>
 
-<!-- === [ZXING] 提供 ZXing 綁定的隱藏 video（不干擾版面） -->
-<video id="zxv" playsinline muted style="position:fixed;left:-9999px;top:-9999px;width:1px;height:1px"></video>
+<!-- 備援 QR 圖 -->
+<input id="qrFile" type="file" accept="image/*" style="display:none" />
 
 <!-- Toast -->
 <div id="toast" class="toast"></div>
@@ -346,18 +306,6 @@ const state = {
   selected: null,
   chosenPay: null,
   ovHidden: false,
-  scan: {
-    detector: null,   // BarcodeDetector（Android/支援瀏覽器）
-    stream: null,
-    video: null,
-    rafId: null,
-    active: false,
-    paused: false,
-
-    // === [ZXING]
-    zxReader: null,   // ZXing.BrowserMultiFormatReader（iOS 後備）
-    zxRunning: false
-  }
 };
 
 const hiddenLeaders = new Set();
@@ -366,18 +314,21 @@ const RAINBOW = ['#EF4444','#F59E0B','#FACC15','#22C55E','#3B82F6','#8B5CF6'];
 /* ===== (3) 小工具 ===== */
 const $ = (id)=>document.getElementById(id);
 const norm = (s)=> (s||'').toString().trim().toLowerCase();
-const showToast = (msg)=>{ const t = $('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(()=> t.classList.remove('show'), 1600); };
+const showToast = (msg)=>{
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  setTimeout(()=> t.classList.remove('show'), 1600);
+};
 const headMsg = (html, spinning=false)=>{
   $('head').innerHTML = '';
-  const span = document.createElement('span'); span.id='headMsg'; span.innerHTML = html; $('head').appendChild(span);
+  const span = document.createElement('span'); span.id='headMsg';
+  span.innerHTML = html;
+  $('head').appendChild(span);
   if(spinning){ const sp=document.createElement('span'); sp.className='spinner'; $('head').appendChild(sp); }
 };
-
-/* 小圖示（勾/叉） */
 const SVG_CHECK = '<span class="meta-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.5" fill="#0f1117" stroke="#22c55e" stroke-width="2.6"/><path d="M7 12.5l3 3 6-6" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></span>';
 const SVG_CROSS = '<span class="meta-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.5" fill="#0f1117" stroke="#ef4444" stroke-width="2.6"/><path d="M8 8l8 8M16 8l-8 8" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></span>';
 
-/* ===== (4) 讀取雲端 ===== */
+/* ===== (4) 讀取名單 ===== */
 async function fetchRoster(){
   try{
     headMsg('資料載入中… / Loading roster…', true);
@@ -392,6 +343,7 @@ async function fetchRoster(){
     renderStats();
     headMsg('請以「掃描 QR」或「手動查找」操作 · Use Scan or Manual Search', false);
     renderOverview();
+    renderOnlyMatches([]); // 清空列表抬頭
   }catch(err){
     console.error(err);
     headMsg('名單載入失敗（可能不是 JSON 或 CORS）/ Failed to load roster', false);
@@ -428,36 +380,55 @@ function manualSearch(){
   const qi = norm($('igInput').value);
   if(qi){ const row = state.rows.find(r=> norm(r.ig)===qi); if(row) { openPayModal(row); return; } }
   if(qn){ const row = state.rows.find(r=> norm(r.name)===qn); if(row) { openPayModal(row); return; } }
-  const cand = state.rows.filter(r => (qi && norm(r.ig).includes(qi)) || (qn && norm(r.name).includes(qn)));
+  const cand = state.rows.filter(r =>
+    (qi && norm(r.ig).includes(qi)) || (qn && norm(r.name).includes(qn))
+  );
   if(cand.length===1){ openPayModal(cand[0]); return; }
   renderOnlyMatches(cand);
 }
+
 function renderOnlyMatches(rows){
   const grid = $('grid'); grid.innerHTML = '';
   if(!rows || !rows.length){ headMsg('查無資料 / No results', false); return; }
   headMsg(`符合 ${rows.length} 筆 / matched records`, false);
-  rows.slice().sort((a,b)=> (a.country||'').localeCompare(b.country||'') || (a.name||'').localeCompare(b.name||'')).forEach(r=> grid.appendChild(renderPerson(r)));
+  rows
+    .slice()
+    .sort((a,b)=> (a.country||'').localeCompare(b.country||'') || (a.name||'').localeCompare(b.name||''))
+    .forEach(r=> grid.appendChild(renderPerson(r)));
 }
+
 function renderPerson(r){
-  const card = document.createElement('div'); card.className='person';
+  const card = document.createElement('div'); 
+  card.className='person';
+  card.dataset.item = String(r.item||'');
   card.addEventListener('click', ()=> openPayModal(r));
+
   const L1 = document.createElement('div'); L1.className='line';
   const left1 = document.createElement('div'); left1.className='left namebar';
   const flag = document.createElement('div'); flag.className='flag'; flag.textContent = r.flag || '—';
   const ctry = document.createElement('span'); ctry.className='country'; ctry.textContent = r.country || '—';
   const name = document.createElement('span'); name.className='personN goldtext'; name.textContent = r.name || '—';
   const ig   = document.createElement('span'); ig.className='ig goldtext';   ig.textContent   = r.ig   || '—';
-  left1.append(flag, ctry, name, ig); L1.append(left1);
+  left1.append(flag, ctry, name, ig);
+  L1.append(left1);
+
   const L2 = document.createElement('div'); L2.className='line';
-  const left2 = document.createElement('div'); left2.className='left';
+  const left2 = document.createElement('div'); 
+  left2.className='left paybox iconsonly';
+  left2.dataset.item = String(r.item||''); // ★ 供點擊時取得 item
   left2.append(buildPay(r.pay_status, true));
   const right2 = document.createElement('div'); right2.className='right';
-  if(r.link){ const a = document.createElement('a'); a.href = r.link; a.target='_blank'; a.rel='noopener noreferrer'; a.className='link-btn';
-    const img = document.createElement('img'); img.src='pngsucai_1605688_ec16ce.png'; img.alt='Open link'; a.appendChild(img); right2.appendChild(a); }
+  if(r.link){
+    const a = document.createElement('a'); a.href = r.link; a.target='_blank'; a.rel='noopener noreferrer'; a.className='link-btn';
+    const img = document.createElement('img'); img.src='pngsucai_1605688_ec16ce.png'; img.alt='Open link';
+    a.appendChild(img); right2.appendChild(a);
+  }
   L2.append(left2, right2);
+
   card.append(L1,L2);
   return card;
 }
+
 function buildPay(status, iconsOnly=false){
   const s = norm(status)==='paid' ? 'paid' : 'unpaid';
   const box = document.createElement('div'); box.className='pay';
@@ -466,32 +437,38 @@ function buildPay(status, iconsOnly=false){
     ? `<svg viewBox="0 0 24 24"><circle class="ring" cx="12" cy="12" r="10.5"/><path class="glyph" d="M7 12.5l3 3 6-6"/></svg>`
     : `<svg viewBox="0 0 24 24"><circle class="ring" cx="12" cy="12" r="10.5"/><path class="glyph" d="M8 8l8 8M16 8l-8 8"/></svg>`;
   const circle = badge.querySelector('circle');
-  if(circle){ if(s==='paid') circle.setAttribute('stroke', getComputedStyle(document.documentElement).getPropertyValue('--ok')||'#22c55e');
-              if(s==='unpaid') circle.setAttribute('stroke', getComputedStyle(document.documentElement).getPropertyValue('--bad')||'#ef4444'); }
+  if(circle){
+    if(s==='paid') circle.setAttribute('stroke', getComputedStyle(document.documentElement).getPropertyValue('--ok')||'#22c55e');
+    if(s==='unpaid') circle.setAttribute('stroke', getComputedStyle(document.documentElement).getPropertyValue('--bad')||'#ef4444');
+  }
   box.append(badge);
   if(!iconsOnly){
     const lab = document.createElement('div'); lab.className='label';
-    lab.innerHTML = s==='paid' ? `<span class="zh">已繳費</span><span class="en">Paid</span>` : `<span class="zh">未繳費</span><span class="en">Unpaid</span>`;
+    lab.innerHTML = s==='paid'
+      ? `<span class="zh">已繳費</span><span class="en">Paid</span>`
+      : `<span class="zh">未繳費</span><span class="en">Unpaid</span>`;
     box.append(lab);
   }
   return box;
 }
 
 /* ===== (7) 付款彈窗 ===== */
-const payBackdrop = $('payBackdrop'); const paySubmit = $('paySubmit');
-$('payClose').addEventListener('click', ()=> { payBackdrop.style.display='none'; state.chosenPay=null; setOptActive(null); resumeScan(); });
+const payBackdrop = $('payBackdrop');
+const paySubmit = $('paySubmit');
+$('payClose').addEventListener('click', ()=> { payBackdrop.style.display='none'; state.chosenPay=null; setOptActive(null); });
 $('optPaid').addEventListener('click', ()=> setOptActive('paid'));
 $('optUnpaid').addEventListener('click', ()=> setOptActive('unpaid'));
+
 function setOptActive(val){
   state.chosenPay = val;
   document.querySelectorAll('.opt').forEach(o=>o.classList.remove('active'));
   if(val==='paid') $('optPaid').classList.add('active');
   if(val==='unpaid') $('optUnpaid').classList.add('active');
 }
+
 function openPayModal(person){
   state.selected = person;
   setOptActive(null);
-  pauseScan(); // 暫停掃描（不關相機）
   const gold = (s)=> `<b class="goldtext">${escapeHtml(s||'—')}</b>`;
   const html = `
     <div>國旗 / Flag：<b>${escapeHtml(person.flag||'—')}</b></div>
@@ -502,36 +479,74 @@ function openPayModal(person){
   $('payInfo').innerHTML = html;
   payBackdrop.style.display='flex';
 }
-function escapeHtml(s){ return (s||'').toString().replace(/[&<>\"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;' })[m]); }
 
-/* 送出更新 */
+function escapeHtml(s){
+  return (s||'').toString().replace(/[&<>\"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]);
+}
+
+/* ===== 送出付款更新（維持原流程） ===== */
 paySubmit.addEventListener('click', async ()=>{
-  if(!state.selected){ payBackdrop.style.display='none'; resumeScan(); return; }
+  if(!state.selected){ payBackdrop.style.display='none'; return; }
   if(!state.chosenPay){ showToast('請選擇「已付款或未付款」'); return; }
+
   if (ENABLE_PAY_PASSWORD) {
-    const p = prompt('請輸入付款更新密碼 / Enter password'); if(p === null) return;
+    const p = prompt('請輸入付款更新密碼 / Enter password');
+    if(p === null) return;
     if(p !== PAY_PASSWORD){ showToast('密碼錯誤 / Wrong password'); return; }
   }
-  const prevHtml = paySubmit.innerHTML; paySubmit.disabled = true;
+
+  const prevHtml = paySubmit.innerHTML;
+  paySubmit.disabled = true;
   paySubmit.innerHTML = '送出中… <span class="spinner" aria-hidden="true"></span>';
-  try{ await updatePay(state.chosenPay); }
-  catch(e){ console.error(e); showToast('更新失敗 / Update failed'); }
-  finally{
-    paySubmit.disabled = false; paySubmit.innerHTML = prevHtml;
-    state.chosenPay = null; setOptActive(null);
-    payBackdrop.style.display = 'none'; resumeScan();
+
+  try{
+    await updatePay(state.chosenPay);
+  }catch(e){
+    console.error(e);
+    showToast('更新失敗 / Update failed');
+  }finally{
+    paySubmit.disabled = false;
+    paySubmit.innerHTML = prevHtml;
+    state.chosenPay = null;
+    setOptActive(null);
+    payBackdrop.style.display = 'none';
   }
 });
+
+/* 僅補丁更新，不重繪整頁 */
+function patchPayDom(item, val){
+  const safe = String(item||'');
+  document.querySelectorAll(`.person[data-item="${CSS.escape(safe)}"] .paybox`).forEach(el=>{
+    const iconsOnly = el.classList.contains('iconsonly');
+    el.innerHTML = '';
+    el.appendChild(buildPay(val, iconsOnly));
+  });
+  document.querySelectorAll(`.member-line[data-item="${CSS.escape(safe)}"] .paybox`).forEach(el=>{
+    el.innerHTML = '';
+    el.appendChild(buildPay(val, false));
+  });
+}
+
 async function updatePay(val){
   const person = state.selected;
   try{
     const payload = { action:'updatePayStatus', item:String(person.item||''), pay_status:val };
-    const ok = await postMaybeOk(payload); if(!ok) throw new Error('SERVER_NOK');
-    person.pay_status = val; const local = state.indexByItem.get(String(person.item||'')); if(local) local.pay_status = val;
-    renderStats(); manualSearch(); renderOverview(); showToast('已更新付款狀態 / Payment updated');
-  }catch(e){ console.error(e); showToast('更新失敗 / Update failed'); }
-  finally{ state.selected = null; }
+    const ok = await postMaybeOk(payload);
+    if(!ok) throw new Error('SERVER_NOK');
+
+    person.pay_status = val;
+    const local = state.indexByItem.get(String(person.item||'')); if(local) local.pay_status = val;
+
+    renderStats();
+    patchPayDom(person.item, val);
+    showToast('已更新付款狀態 / Payment updated');
+  }catch(e){
+    console.error(e);
+    showToast('更新失敗 / Update failed');
+  }
 }
+
+/* 多種 content-type 容忍 */
 async function postMaybeOk(bodyObj){
   if(await tryFetch(WEB_APP_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(bodyObj), mode:'cors', cache:'no-store' })) return true;
   if(await tryFetch(WEB_APP_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(bodyObj), mode:'cors', cache:'no-store' })) return true;
@@ -549,188 +564,176 @@ async function tryFetch(url, init){
   }catch(_){ return false; }
 }
 
-/* ===== (8) 概覽 ===== */
+/* ===== (8) 總覽 ===== */
 $('btnOvHide').addEventListener('click', ()=>{ state.ovHidden=true; syncOvToggle(); });
 $('btnOvShow').addEventListener('click', ()=>{ state.ovHidden=false; syncOvToggle(); });
-function syncOvToggle(){ $('ovSection').style.display = state.ovHidden ? 'none' : ''; $('btnOvShow').style.display = state.ovHidden ? 'flex' : 'none'; }
+
+function syncOvToggle(){
+  $('ovSection').style.display = state.ovHidden ? 'none' : '';
+  $('btnOvShow').style.display = state.ovHidden ? 'flex' : 'none';
+}
+
 function renderOverview(){
   syncOvToggle();
   const grid = $('leaderGrid'); grid.innerHTML='';
   if(!state.rows.length){ grid.innerHTML = `<div class="leader-meta">尚未載入名單 / Not loaded</div>`; return; }
+
   const groups = new Map();
-  for(const r of state.rows){ const key = (r.leader||'—').trim(); if(!groups.has(key)) groups.set(key, []); groups.get(key).push(r); }
+  for(const r of state.rows){
+    const key = (r.leader||'—').trim();
+    if(!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(r);
+  }
+
   for(const [leader, members] of groups){
     if(hiddenLeaders.has(leader)) continue;
     const paid = members.filter(m=> norm(m.pay_status)==='paid').length;
     const unpaid = members.length - paid;
+
     const card = document.createElement('div'); card.className='leader-card';
     const head = document.createElement('div'); head.className='leader-head';
+
     const left = document.createElement('div'); left.className='leader-left';
-    const hideBtn = document.createElement('button'); hideBtn.className='leader-hide'; hideBtn.title='隱藏此桌長 / Hide this leader'; hideBtn.textContent='👁';
+    const hideBtn = document.createElement('button');
+    hideBtn.className='leader-hide'; hideBtn.title='隱藏此桌長 / Hide this leader'; hideBtn.textContent='👁';
     hideBtn.addEventListener('click', ()=>{ hiddenLeaders.add(leader); renderOverview(); renderHiddenBar(); });
     const title = document.createElement('div'); title.className='leader-name'; title.textContent = leader || '—';
     left.append(hideBtn, title);
-    const meta = document.createElement('div'); meta.className='leader-meta'; meta.innerHTML = `${members.length} 人 · ${SVG_CHECK}${paid} · ${SVG_CROSS}${unpaid}`;
+
+    const meta = document.createElement('div'); meta.className='leader-meta';
+    meta.innerHTML = `${members.length} 人 · ${SVG_CHECK}${paid} · ${SVG_CROSS}${unpaid}`;
     head.append(left, meta);
+
     const actions = document.createElement('div'); actions.className='leader-actions';
     const btnToggle = document.createElement('button'); btnToggle.className='leader-toggle'; btnToggle.textContent='查看清單 / View';
     actions.append(btnToggle);
+
     const list = document.createElement('div'); list.className='leader-list'; list.style.display='none';
-    members.slice().sort((a,b)=> (a.name||'').localeCompare(b.name||'')).forEach(m=>{
-      const line = document.createElement('div'); line.className='member-line'; line.title='點擊修改付款狀態 / Click to change payment';
-      line.addEventListener('click', ()=> openPayModal(m));
-      const leftM = document.createElement('div'); leftM.className='mini';
-      const flag = document.createElement('div'); flag.textContent = m.flag || '—';
-      const nm   = document.createElement('div'); nm.className='m-name goldtext'; nm.textContent = m.name || '—';
-      const ig   = document.createElement('div'); ig.className='m-ig goldtext';   ig.textContent = m.ig || '';
-      leftM.append(flag,nm,ig);
-      const rightM = document.createElement('div'); rightM.style.display='flex'; rightM.style.gap='8px';
-      rightM.append(buildPay(m.pay_status, false));
-      line.append(leftM,rightM); list.appendChild(line);
-    });
+    members
+      .slice()
+      .sort((a,b)=> (a.name||'').localeCompare(b.name||''))
+      .forEach(m=>{
+        const line = document.createElement('div'); 
+        line.className='member-line';
+        line.dataset.item = String(m.item||'');
+        line.title = '點擊修改付款狀態 / Click to change payment';
+        line.addEventListener('click', ()=> openPayModal(m));
+
+        const leftM = document.createElement('div'); leftM.className='mini';
+        const flag = document.createElement('div'); flag.textContent = m.flag || '—';
+        const nm   = document.createElement('div'); nm.className='m-name goldtext'; nm.textContent = m.name || '—';
+        const ig   = document.createElement('div'); ig.className='m-ig goldtext';   ig.textContent = m.ig   || '';
+        leftM.append(flag,nm,ig);
+
+        const rightM = document.createElement('div'); 
+        rightM.style.display='flex'; rightM.style.gap='8px';
+        rightM.className = 'paybox'; // ★ 供點擊事件代理
+        rightM.dataset.item = String(m.item||'');
+        rightM.append(buildPay(m.pay_status, false));
+
+        line.append(leftM,rightM);
+        list.appendChild(line);
+      });
+
     btnToggle.addEventListener('click', ()=>{ list.style.display = (list.style.display==='none') ? '' : 'none'; });
-    card.append(head, actions, list); grid.appendChild(card);
+
+    card.append(head, actions, list);
+    grid.appendChild(card);
   }
 }
+
+/* 個別隱藏列管理 */
 function renderHiddenBar(){
   const bar = $('ovHiddenBar'); const list = $('ovHiddenList'); const cnt = $('ovHiddenCount');
-  if(!bar) return; const items = [...hiddenLeaders]; if(cnt) cnt.textContent = String(items.length);
+  const items = [...hiddenLeaders];
+  if(cnt) cnt.textContent = String(items.length);
   if(items.length===0){ bar.style.display='none'; if(list) list.innerHTML=''; return; }
   bar.style.display='block';
-  if(list){ list.innerHTML=''; let i=0; for(const leader of items){
-    const chip = document.createElement('div'); chip.className='hchip';
-    const dot = document.createElement('div'); dot.className='dot'; dot.style.background = RAINBOW[i % RAINBOW.length];
-    dot.title='點擊恢復 ' + leader; dot.addEventListener('click', ()=>{ hiddenLeaders.delete(leader); renderOverview(); renderHiddenBar(); });
-    const lab = document.createElement('div'); lab.className='label'; lab.textContent = leader; chip.append(dot, lab); list.appendChild(chip); i++;
-  } }
+  if(list){
+    list.innerHTML='';
+    let i=0;
+    for(const leader of items){
+      const chip = document.createElement('div'); chip.className='hchip';
+      const dot = document.createElement('div'); dot.className='dot'; dot.style.background = RAINBOW[i % RAINBOW.length];
+      dot.title='點擊恢復 ' + leader;
+      dot.addEventListener('click', ()=>{ hiddenLeaders.delete(leader); renderOverview(); renderHiddenBar(); });
+      const lab = document.createElement('div'); lab.className='label'; lab.textContent = leader;
+      chip.append(dot, lab);
+      list.appendChild(chip);
+      i++;
+    }
+  }
 }
 $('ovUnhideAll')?.addEventListener('click', ()=>{ hiddenLeaders.clear(); renderOverview(); renderHiddenBar(); });
 
-/* ===== (9) 掃描 QR：支援 BarcodeDetector（首選）+ ZXing（iOS 後備） ===== */
+/* ===== (9) 掃描 QR ===== */
 $('btnScan').addEventListener('click', startScan);
-$('scanStop').addEventListener('click', stopScan);
-
-async function ensureDetector(){
-  if(state.scan.detector) return state.scan.detector;
-  if(!('BarcodeDetector' in window)) return null;
-  try{ state.scan.detector = new window.BarcodeDetector({ formats:['qr_code'] }); return state.scan.detector; }
-  catch(e){ console.warn('BarcodeDetector init failed', e); return null; }
-}
-async function ensureCamera(){
-  if(state.scan.stream) return state.scan.stream;
-  state.scan.stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'environment' }});
-  if(!state.scan.video){
-    const v = document.createElement('video');
-    v.playsInline = true; v.muted = true; v.setAttribute('muted','');
-    v.style.position='fixed'; v.style.left='-9999px'; v.style.top='-9999px';
-    v.srcObject = state.scan.stream; await v.play(); state.scan.video = v;
-  }else{
-    state.scan.video.srcObject = state.scan.stream; await state.scan.video.play();
-  }
-  return state.scan.stream;
-}
 
 async function startScan(){
-  const detector = await ensureDetector();
-  if(!detector){
-    // === [ZXING] iOS / 不支援 BarcodeDetector → 用 ZXing 連續掃描
-    startScanZXing();
-    return;
-  }
-  try{ await ensureCamera(); }
-  catch(e){ console.warn('camera open failed', e); showToast('無法開啟相機，請檢查權限或改用手動查找'); return; }
-  $('scanBar').style.display='flex';
-  if(state.scan.active){ state.scan.paused = false; return; }
-  state.scan.active = true; state.scan.paused = false;
-
-  const tick = async ()=>{
-    if(!state.scan.active) return;
-    if(state.scan.paused){ state.scan.rafId = requestAnimationFrame(tick); return; }
+  const supported = ('BarcodeDetector' in window);
+  if(supported){
     try{
-      if(state.scan.video && state.scan.video.readyState >= 2){
-        const bitmap = await createImageBitmap(state.scan.video);
-        const codes = await state.scan.detector.detect(bitmap);
-        bitmap.close();
-        if(codes && codes.length){
-          const item = (codes[0].rawValue||'').trim();
-          if(item){ handleScanItem(item); } // openPayModal 內會 pause
-        }
-      }
-    }catch(e){ /* ignore transient errors */ }
-    state.scan.rafId = requestAnimationFrame(tick);
-  };
-  state.scan.rafId = requestAnimationFrame(tick);
-}
+      const detector = new window.BarcodeDetector({ formats:['qr_code'] });
+      const stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'environment' }});
+      const video = document.createElement('video'); video.playsInline = true; video.srcObject = stream; await video.play();
 
-/* === [ZXING] 連續掃描（iOS 後備） */
-function ensureZxing(){
-  if(!window.ZXing || !ZXing.BrowserMultiFormatReader){ showToast('裝置不支援 QR 解析；請改用手動查找'); return null; }
-  if(!state.scan.zxReader){ state.scan.zxReader = new ZXing.BrowserMultiFormatReader(); }
-  return state.scan.zxReader;
-}
-async function startScanZXing(){
-  const reader = ensureZxing(); if(!reader) return;
-  $('scanBar').style.display='flex';
-  if(state.scan.zxRunning){ state.scan.active = true; state.scan.paused = false; return; }
-  state.scan.active = true; state.scan.paused = false; state.scan.zxRunning = true;
-  try{
-    await reader.decodeFromConstraints(
-      { video: { facingMode: { ideal: 'environment' } } },
-      'zxv',
-      (result, err) => {
-        if(!state.scan.active || state.scan.paused) return;
-        if(result){
-          const txt = (result.getText ? result.getText() : result.text || '').trim();
-          if(txt){
-            state.scan.paused = true; // 先暫停，避免同一幀連續觸發
-            handleScanItem(txt);
+      const tick = async ()=>{
+        if(video.readyState >= 2){
+          const bitmap = await createImageBitmap(video);
+          const codes = await detector.detect(bitmap);
+          bitmap.close();
+          if(codes && codes.length){
+            await stopStream(stream);
+            const item = (codes[0].rawValue||'').trim();
+            handleScanItem(item);
+            return;
           }
         }
-        // 忽略 err（notFound/CheckSum/Format 等），持續掃描
-      }
-    );
-  }catch(e){
-    console.warn('ZXing init failed', e);
-    showToast('無法啟用相機掃描，請改用手動或上傳圖片');
+        requestAnimationFrame(tick);
+      };
+      tick();
+      showToast('掃描中… 將 QR 對準鏡頭 / Scanning…');
+      return;
+    }catch(e){ console.warn('BarcodeDetector video path failed, fallback to file', e); }
   }
+  const input = $('qrFile');
+  input.onchange = async (e)=>{
+    const f = (e.target.files||[])[0];
+    if(!f){ showToast('未選取圖片 / No image selected'); return; }
+    try{
+      if(!('BarcodeDetector' in window)) throw new Error('no-detector');
+      const detector = new window.BarcodeDetector({ formats:['qr_code'] });
+      const bmp = await createImageBitmap(f);
+      const codes = await detector.detect(bmp);
+      bmp.close();
+      if(codes && codes.length){ handleScanItem((codes[0].rawValue||'').trim()); }
+      else{ showToast('解析失敗，請改用手動查找 / Parse failed, use manual search'); }
+    }catch(err){ console.warn(err); showToast('裝置不支援 QR 解析；請改用手動查找 / Not supported, use manual search'); }
+    finally{ input.value=''; }
+  };
+  input.click();
 }
 
-function pauseScan(){ state.scan.paused = true; }
-function resumeScan(){
-  if($('scanBar')) $('scanBar').style.display='flex';
-  state.scan.paused = false;
-  // BarcodeDetector 路徑：RAF 仍在跑；ZXing 路徑：callback 持續跑，這裡只要解除 paused 即可
-}
-function stopScan(){
-  state.scan.paused = true;
-  state.scan.active = false;
-  $('scanBar').style.display='none';
-  if(state.scan.rafId){ cancelAnimationFrame(state.scan.rafId); state.scan.rafId = null; }
-  // ZXing：停止串流
-  try{ state.scan.zxReader?.reset(); state.scan.zxRunning = false; }catch(_){}
-  // BarcodeDetector：關閉串流
-  try{ if(state.scan.stream){ state.scan.stream.getTracks().forEach(t=>t.stop()); } }catch(_){}
-  state.scan.stream = null;
-  if(state.scan.video){ try{ state.scan.video.pause(); state.scan.video.srcObject = null; }catch(_){} }
-}
+async function stopStream(stream){ try{ stream.getTracks().forEach(t=>t.stop()); }catch(_){} }
 
-/* 掃描結果處理（兩條路共用） */
 function handleScanItem(itemStr){
-  if(!itemStr){ showToast('QR 無內容 / Empty QR'); resumeScan(); return; }
+  if(!itemStr){ showToast('QR 無內容 / Empty QR'); return; }
   const row = state.indexByItem.get(String(itemStr));
-  if(!row){ showToast('查無此 ITEM · 請確認 / Item not found'); resumeScan(); return; }
+  if(!row){ showToast('查無此 ITEM · 請確認 / Item not found'); return; }
   openPayModal(row);
 }
 
-/* ===== (10) 重新整理 & 故障診斷 ===== */
+/* ===== (10) 重新整理 & 診斷 ===== */
 $('btnRefresh').addEventListener('click', ()=> fetchRoster());
+
 $('btnDiagnose').addEventListener('click', async ()=>{
   try{
     const res = await fetch(WEB_APP_URL + '?mode=ping', {cache:'no-store'});
     const ct = res.headers.get('content-type') || '(無 content-type)';
     let text = ''; try{ text = await res.text(); }catch(_){ }
     const snippet = (text||'').slice(0, 280);
-    alert('【診斷 / Diagnose】\n'
+    alert(
+      '【診斷 / Diagnose】\n'
       + 'URL: ' + WEB_APP_URL + '?mode=ping\n'
       + 'Status: ' + res.status + '\n'
       + 'Content-Type: ' + ct + '\n'
@@ -741,11 +744,134 @@ $('btnDiagnose').addEventListener('click', async ()=>{
   }catch(e){ alert('Ping 失敗：可能網路/CORS/權限 · Failed to ping'); }
 });
 
-/* ===== (11) 啟動 ===== */
-window.addEventListener('error', (e)=>{ try{ console.error('[GlobalError]', e.message, e.filename, e.lineno, e.colno, e.error); }catch(_){}
-  try{ showToast('發生錯誤：' + (e.message || 'Script error')); }catch(_){} });
-window.addEventListener('unhandledrejection', (e)=>{ try{ console.error('[UnhandledRejection]', e.reason); }catch(_){}
-  try{ showToast('發生錯誤（Promise）：' + (e.reason && e.reason.message ? e.reason.message : '')); }catch(_){} });
+/* ===== (11) ★ 新增：點狀態徽章 → 顯示紀錄 / 未繳名單 ===== */
+/* 使用事件代理，掛在 document 上；我們只判定點到 .paybox（保留你原有 DOM 補丁行為） */
+document.addEventListener('click', async (e)=>{
+  const paybox = e.target.closest('.paybox');
+  if(!paybox) return;
+
+  // 嘗試由 paybox 或其父系卡片找到 item
+  let item = paybox.dataset.item;
+  if(!item){
+    const li = paybox.closest('.member-line');
+    if(li?.dataset.item) item = li.dataset.item;
+  }
+  if(!item){
+    const card = paybox.closest('.person');
+    if(card?.dataset.item) item = card.dataset.item;
+  }
+  if(!item) return;
+
+  const row = state.indexByItem.get(String(item));
+  if(!row) return;
+
+  const status = norm(row.pay_status);
+  try{
+    if(status === 'paid'){
+      await openPayLogsModal(item, row);
+    }else{
+      await openUnpaidListModal();
+    }
+  }catch(err){
+    console.error(err);
+    showToast('讀取紀錄失敗 / Failed to load logs');
+  }
+});
+
+/* 通用彈窗控制 */
+const logBackdrop = $('logBackdrop');
+$('logClose').addEventListener('click', ()=>{ logBackdrop.style.display='none'; });
+
+async function openPayLogsModal(item, rowCtx){
+  $('logTitle').textContent = `繳費紀錄（最新在上） · ${rowCtx?.name||''} / ${rowCtx?.ig||''}`;
+  $('logBody').innerHTML = `<div class="log-empty">讀取中… <span class="spinner" aria-hidden="true"></span></div>`;
+  logBackdrop.style.display = 'flex';
+
+  const res = await fetch(`${WEB_APP_URL}?mode=payLogs&item=${encodeURIComponent(item)}`, {cache:'no-store'});
+  const logs = await res.json(); // 期望：[{time,name,ig,leader,pay_status}, ...]
+  const list = Array.isArray(logs) ? logs.slice() : [];
+  // 由最新到最舊（若 time 是字串 ISO 或可比較的數字）
+  list.sort((a,b)=> String(b.time||'').localeCompare(String(a.time||'')));
+
+  if(!list.length){
+    $('logBody').innerHTML = `<div class="log-empty">尚無紀錄</div>`;
+    return;
+  }
+
+  const table = document.createElement('table'); table.className='log-table';
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>時間</th><th>name</th><th>ig</th><th>leader</th><th>繳費狀態</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  `;
+  const tb = table.querySelector('tbody');
+  list.forEach(r=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${escapeHtml(r.time||'')}</td>
+      <td>${escapeHtml(r.name||'')}</td>
+      <td>${escapeHtml(r.ig||'')}</td>
+      <td>${escapeHtml(r.leader||'')}</td>
+      <td>${escapeHtml(r.pay_status||'')}</td>
+    `;
+    tb.appendChild(tr);
+  });
+  $('logBody').innerHTML = `<div class="log-wrap"></div>`;
+  $('logBody').firstElementChild.appendChild(table);
+}
+
+async function openUnpaidListModal(){
+  $('logTitle').textContent = `未繳費名單（即時）`;
+  $('logBody').innerHTML = `<div class="log-empty">讀取中… <span class="spinner" aria-hidden="true"></span></div>`;
+  logBackdrop.style.display = 'flex';
+
+  const res = await fetch(`${WEB_APP_URL}?mode=listUnpaid`, {cache:'no-store'});
+  const arr = await res.json(); // 期望：[{name,ig,leader,item}, ...]
+  const list = Array.isArray(arr) ? arr.slice() : [];
+
+  if(!list.length){
+    $('logBody').innerHTML = `<div class="log-empty">目前無未繳費</div>`;
+    return;
+  }
+
+  // 排序：leader → name
+  list.sort((a,b)=> (a.leader||'').localeCompare(b.leader||'') || (a.name||'').localeCompare(b.name||''));
+
+  const table = document.createElement('table'); table.className='log-table';
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>name</th><th>ig</th><th>leader</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  `;
+  const tb = table.querySelector('tbody');
+  list.forEach(r=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${escapeHtml(r.name||'')}</td>
+      <td>${escapeHtml(r.ig||'')}</td>
+      <td>${escapeHtml(r.leader||'')}</td>
+    `;
+    tb.appendChild(tr);
+  });
+  $('logBody').innerHTML = `<div class="log-wrap"></div>`;
+  $('logBody').firstElementChild.appendChild(table);
+}
+
+/* ===== (12) 啟動與錯誤攔截 ===== */
+window.addEventListener('error', (e)=>{
+  try{ console.error('[GlobalError]', e.message, e.filename, e.lineno, e.colno, e.error); }catch(_){}
+  try{ showToast('發生錯誤：' + (e.message || 'Script error')); }catch(_){}
+});
+window.addEventListener('unhandledrejection', (e)=>{
+  try{ console.error('[UnhandledRejection]', e.reason); }catch(_){}
+  try{ showToast('發生錯誤（Promise）：' + (e.reason && e.reason.message ? e.reason.message : '')); }catch(_){}
+});
 fetchRoster();
 </script>
 </body>
