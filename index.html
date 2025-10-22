@@ -1,4 +1,4 @@
-<!doctype html>
+<!doctype html> 
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8" />
@@ -57,6 +57,8 @@ button.primary:hover{filter:saturate(1.08);}
 .chip.total .dot{background:#a3e635}
 .chip.paid .dot{background:#22c55e}
 .chip.unpaid .dot{background:#ef4444}
+/* NOTE chip */
+.chip.note .dot{background:#60a5fa}
 .chip .lab{font-size:12px;color:#aeb7c2}
 .chip .num{font-size:13px;color:#fff;min-width:16px;text-align:right}
 
@@ -189,14 +191,24 @@ button.primary:hover{filter:saturate(1.08);}
   .fabrow{justify-content:flex-start}
 }
 
-/* ===== 新增：付款/未付款清單 Modal 風格（表格） ===== */
+/* ===== 表格共用（已繳費/未繳費清單 & NOTE） ===== */
 .tablewrap{max-height:70vh;overflow:auto;border:1px solid #2b3244;border-radius:12px}
 .table{width:100%;border-collapse:collapse;font-size:13px}
 .table thead th{position:sticky;top:0;background:#0f1117;border-bottom:1px solid #2b3244;padding:8px 10px;text-align:left;color:#cbd5e1}
-.table tbody td{border-bottom:1px dashed #2b3244;padding:7px 10px;color:#e5e7eb;vertical-align:top}
+.table tbody td{border-bottom:1px dashed #2b3244;padding:6px 8px;color:#e5e7eb;vertical-align:top}
 .table .muted{color:#9AA4AF}
 .table .status-paid{color:#86efac;font-weight:800}
 .table .status-unpaid{color:#fca5a5;font-weight:800}
+
+/* ===== NOTE Modal ===== */
+.note-filters{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.note-filters input[type="text"]{padding:8px 10px;border-radius:10px;border:1px solid #2b3244;background:#0f1117;color:#e5e7eb;width:180px}
+.note-filters label{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#9AA4AF}
+.note-small{font-size:12px;color:#9AA4AF;margin-left:auto}
+.note-tight{white-space:nowrap}
+.note-checkbox{width:18px;height:18px;cursor:pointer}
+.note-select{background:#0f1117;border:1px solid #2b3244;color:#e5e7eb;border-radius:8px;padding:6px 8px}
+.note-input{background:#0f1117;border:1px solid #2b3244;color:#e5e7eb;border-radius:8px;padding:6px 8px;width:220px}
 </style>
 </head>
 <body>
@@ -209,11 +221,13 @@ button.primary:hover{filter:saturate(1.08);}
   </div>
   <div class="rainbow-line"></div>
 
-  <!-- 統計（頂部保留原樣） -->
+  <!-- 統計（頂部保留原樣 + NOTE） -->
   <div id="stats" class="stats">
     <div class="chip total"><span class="dot"></span><span class="lab">總計 / Total</span><b class="num" id="sTotal">0</b></div>
     <div class="chip paid"><span class="dot"></span><span class="lab">已繳費 / Paid</span><b class="num" id="sPaid">0</b></div>
     <div class="chip unpaid"><span class="dot"></span><span class="lab">未繳費 / Unpaid</span><b class="num" id="sUnpaid">0</b></div>
+    <!-- NOTE 功能：新增一顆 chip -->
+    <div class="chip note" id="chipNote" title="註記 / Note"><span class="dot"></span><span class="lab">Note</span></div>
   </div>
 
   <!-- 控制面板 -->
@@ -289,7 +303,7 @@ button.primary:hover{filter:saturate(1.08);}
   </div>
 </div>
 
-<!-- ✅ 新增：已繳費/未繳費清單 Modal -->
+<!-- ✅ 已繳費/未繳費清單 Modal（原本） -->
 <div id="listBackdrop" class="backdrop">
   <div class="modal" style="width:min(760px,94vw)">
     <div id="listTitle" class="title2">清單</div>
@@ -297,6 +311,27 @@ button.primary:hover{filter:saturate(1.08);}
     <div id="listBody" class="tablewrap"></div>
     <div class="actions">
       <button id="listClose" class="btn">關閉 / Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ✅ NOTE Modal（需密碼） -->
+<div id="noteBackdrop" class="backdrop">
+  <div class="modal" style="width:min(980px,96vw)">
+    <div class="title2">註記 / Note（全域共用）</div>
+    <div class="rb"></div>
+
+    <!-- 篩選/搜尋列 -->
+    <div class="note-filters">
+      <label><input type="checkbox" id="noteOnlyUnpaid"> 只看未繳費</label>
+      <input type="text" id="noteSearchName" placeholder="搜尋 name">
+      <input type="text" id="noteSearchIg" placeholder="搜尋 ig">
+      <div class="note-small">修改即自動儲存，不影響繳費送出時間</div>
+    </div>
+
+    <div id="noteTableWrap" class="tablewrap"></div>
+    <div class="actions">
+      <button id="noteClose" class="btn">關閉 / Close</button>
     </div>
   </div>
 </div>
@@ -309,10 +344,12 @@ button.primary:hover{filter:saturate(1.08);}
 
 <script>
 /* ===== (1) 設定：換成你的 GAS URL ===== */
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzdHv4Hd0wnLhMp5gnpSqLgN6QDhoGiJg-EC2CxsnJ1zt15Q2opVNgUSQ9ObCN24H2EFA/exec';
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyBxgEbiY2mnsfIX7CXj1q1poEIAbxa8qHo-ZDU09h9IzxDMyHYEDtYtzXdC9wK830j/exec';
 const PAY_PASSWORD = '05140714';
 /* ✅ 是否啟用送出時密碼驗證（暫時關閉就設 false；要再開啟改 true） */
 const ENABLE_PAY_PASSWORD = false;
+/* ✅ NOTE 密碼沿用 PAY_PASSWORD（可自行改成獨立常數） */
+const NOTE_PASSWORD = PAY_PASSWORD;
 
 /* ===== (2) 狀態 ===== */
 const state = {
@@ -321,6 +358,8 @@ const state = {
   selected: null,        // 付款彈窗選中的人
   chosenPay: null,       // 'paid' / 'unpaid'
   ovHidden: false,       // 概覽是否收合
+  /* NOTE 功能 */
+  noteAuthed: false,     // 是否通過 NOTE 密碼
 };
 const hiddenLeaders = new Set();
 const RAINBOW = ['#EF4444','#F59E0B','#FACC15','#22C55E','#3B82F6','#8B5CF6'];
@@ -357,7 +396,13 @@ async function fetchRoster(){
     const res = await fetch(WEB_APP_URL + '?mode=roster', {cache:'no-store'});
     const data = await res.json();
     const rows = Array.isArray(data) ? data : (data.rows || []);
-    rows.forEach(r=>{ if(!('pay_status' in r) || !r.pay_status) r.pay_status = 'unpaid'; });
+    rows.forEach(r=>{
+      if(!('pay_status' in r) || !r.pay_status) r.pay_status = 'unpaid';
+      // 確保 NOTE 欄位存在（不破壞既有）
+      if(!('confirm' in r)) r.confirm = false;
+      if(!('pay_method' in r)) r.pay_method = '';
+      if(!('note' in r)) r.note = '';
+    });
     state.rows = rows;
     state.indexByItem.clear();
     for(const r of rows){ if(r.item) state.indexByItem.set(String(r.item), r); }
@@ -389,7 +434,7 @@ function renderStats(){
   $('sUnpaid').textContent= unpaid;
 }
 
-/* ===== (6) 搜尋（手動）→ 直接彈窗；多筆只列出「符合的那些人」 ===== */
+/* ===== (6) 搜尋（手動）→ 付款彈窗 ===== */
 $('btnSearch').addEventListener('click', manualSearch);
 $('nameInput').addEventListener('keydown', e=>{ if(e.key==='Enter') manualSearch(); });
 $('igInput').addEventListener('keydown', e=>{ if(e.key==='Enter') manualSearch(); });
@@ -398,8 +443,6 @@ function manualSearch(){
   if(!state.rows.length){ showToast('名單未就緒 / Roster not ready'); return; }
   const qn = norm($('nameInput').value);
   const qi = norm($('igInput').value);
-
-  // 精準比對 → 直接彈窗
   if(qi){
     const row = state.rows.find(r=> norm(r.ig)===qi);
     if(row) { openPayModal(row); return; }
@@ -408,7 +451,6 @@ function manualSearch(){
     const row = state.rows.find(r=> norm(r.name)===qn);
     if(row) { openPayModal(row); return; }
   }
-  // 關鍵字包含：只列出「符合的條目」，不帶出同 leader 全桌
   const cand = state.rows.filter(r => (qi && norm(r.ig||'').includes(qi)) || (qn && norm(r.name||'').includes(qn)) );
   if(cand.length===1){ openPayModal(cand[0]); return; }
   renderOnlyMatches(cand);
@@ -428,7 +470,7 @@ function renderPerson(r){
   card.dataset.item = String(r.item||''); // ★ 加入 data-item 供補丁更新
   card.addEventListener('click', ()=> openPayModal(r)); // 點卡片開彈窗
 
-  // 第一行：flag / country / name / ig（name/ig 金色漸層）
+  // 第一行
   const L1 = document.createElement('div'); L1.className='line';
   const left1 = document.createElement('div'); left1.className='left namebar';
   const flag = document.createElement('div'); flag.className='flag'; flag.textContent = r.flag || '—';
@@ -437,9 +479,9 @@ function renderPerson(r){
   const ig = document.createElement('span'); ig.className='ig goldtext'; ig.textContent = r.ig || '—';
   left1.append(flag, ctry, name, ig); L1.append(left1);
 
-  // 第二行：pay_status + link（顯示目前狀態）
+  // 第二行：pay_status + link
   const L2 = document.createElement('div'); L2.className='line';
-  const left2 = document.createElement('div'); left2.className='left paybox iconsonly'; // ★ 標記
+  const left2 = document.createElement('div'); left2.className='left paybox iconsonly';
   left2.append(buildPay(r.pay_status, true));
   const right2 = document.createElement('div'); right2.className='right';
   if(r.link){
@@ -459,7 +501,6 @@ function buildPay(status, iconsOnly=false){
   badge.innerHTML = s==='paid'
     ? '<svg viewBox="0 0 24 24"><circle class="ring" cx="12" cy="12" r="10.5"/><path class="glyph" d="M7 12.5l3 3 6-6"/></svg>'
     : '<svg viewBox="0 0 24 24"><circle class="ring" cx="12" cy="12" r="10.5"/><path class="glyph" d="M8 8l8 8M16 8l-8 8"/></svg>';
-  // 顏色
   const circle = badge.querySelector('circle');
   if(circle){
     if(s==='paid') circle.setAttribute('stroke', getComputedStyle(document.documentElement).getPropertyValue('--ok')||'#22c55e');
@@ -476,7 +517,7 @@ function buildPay(status, iconsOnly=false){
   return box;
 }
 
-/* ===== (7) 付款彈窗：flag/name/ig/pay_status ===== */
+/* ===== (7) 付款彈窗 ===== */
 const payBackdrop = $('payBackdrop');
 const paySubmit = $('paySubmit');
 $('payClose').addEventListener('click', ()=> { payBackdrop.style.display='none'; state.chosenPay=null; setOptActive(null); });
@@ -504,17 +545,15 @@ function openPayModal(person){
 }
 function escapeHtml(s){ return (s||'').toString().replace(/[&<>\"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]); }
 
-/* ===== 送出付款更新：可切換密碼驗證 + 送出中轉圈 ===== */
+/* ===== 送出付款更新 ===== */
 paySubmit.addEventListener('click', async ()=>{
   if(!state.selected){ payBackdrop.style.display='none'; return; }
   if(!state.chosenPay){ showToast('請選擇「已付款或未付款」'); return; }
-  // 🔐（可選）密碼保護
   if (ENABLE_PAY_PASSWORD) {
     const p = prompt('請輸入付款更新密碼 / Enter password');
     if(p === null) return;
     if(p !== PAY_PASSWORD){ showToast('密碼錯誤 / Wrong password'); return; }
   }
-  // ⏳ 送出中 UI
   const prevHtml = paySubmit.innerHTML;
   paySubmit.disabled = true;
   paySubmit.innerHTML = '送出中… <span class="spinner" aria-hidden="true"></span>';
@@ -524,7 +563,6 @@ paySubmit.addEventListener('click', async ()=>{
     console.error(e);
     showToast('更新失敗 / Update failed');
   }finally{
-    // 還原按鈕與狀態
     paySubmit.disabled = false;
     paySubmit.innerHTML = prevHtml;
     state.chosenPay = null;
@@ -536,13 +574,11 @@ paySubmit.addEventListener('click', async ()=>{
 /* ★★★★★ 只補丁更新，不重繪整頁（大幅降低延遲） ★★★★★ */
 function patchPayDom(item, val){
   const safe = String(item||'');
-  // 1) 上方「結果清單」卡片內的 paybox（iconsonly）
   document.querySelectorAll(`.person[data-item="${CSS.escape(safe)}"] .paybox`).forEach(el=>{
     const iconsOnly = el.classList.contains('iconsonly');
     el.innerHTML = '';
     el.appendChild(buildPay(val, iconsOnly));
   });
-  // 2) 總覽列表中每位成員右側的 paybox
   document.querySelectorAll(`.member-line[data-item="${CSS.escape(safe)}"] .paybox`).forEach(el=>{
     el.innerHTML = '';
     el.appendChild(buildPay(val, /*iconsOnly*/ false));
@@ -556,20 +592,16 @@ async function updatePay(val){
     const ok = await postMaybeOk(payload);
     if(!ok) throw new Error('SERVER_NOK');
 
-    // 同步本地資料
     person.pay_status = val;
     const local = state.indexByItem.get(String(person.item||''));
     if(local) local.pay_status = val;
 
-    // 只更新統計與畫面中此人的徽章（不重建總覽與清單）
     renderStats();
     patchPayDom(person.item, val);
     showToast('已更新付款狀態 / Payment updated');
   }catch(e){
     console.error(e);
     showToast('更新失敗 / Update failed');
-  }finally{
-    // 關閉彈窗在外層 finally
   }
 }
 
@@ -602,7 +634,6 @@ function renderOverview(){
   syncOvToggle();
   const grid = $('leaderGrid'); grid.innerHTML='';
   if(!state.rows.length){ grid.innerHTML = '<div class="leader-meta">尚未載入名單 / Not loaded</div>'; return; }
-  // 分組
   const groups = new Map();
   for(const r of state.rows){
     const key = (r.leader||'—').trim();
@@ -617,14 +648,12 @@ function renderOverview(){
     const card = document.createElement('div'); card.className='leader-card';
     const head = document.createElement('div'); head.className='leader-head';
 
-    // 左側：👁 + leader name
     const left = document.createElement('div'); left.className='leader-left';
     const hideBtn = document.createElement('button'); hideBtn.className='leader-hide'; hideBtn.title='隱藏此桌長 / Hide this leader'; hideBtn.textContent='👁';
     hideBtn.addEventListener('click', ()=>{ hiddenLeaders.add(leader); renderOverview(); renderHiddenBar(); });
     const title = document.createElement('div'); title.className='leader-name'; title.textContent = leader || '—';
     left.append(hideBtn, title);
 
-    // 右側 meta
     const meta = document.createElement('div'); meta.className='leader-meta';
     meta.innerHTML = `${members.length} 人 · ${SVG_CHECK}${paid} · ${SVG_CROSS}${unpaid}`;
     head.append(left, meta);
@@ -702,7 +731,6 @@ async function startScan(){
       return;
     }catch(e){ console.warn('BarcodeDetector video path failed, fallback to file', e); }
   }
-  // 備援：上傳圖片→detect
   const input = $('qrFile');
   input.onchange = async (e)=>{
     const f = (e.target.files||[])[0];
@@ -727,7 +755,7 @@ function handleScanItem(itemStr){
   if(!itemStr){ showToast('QR 無內容 / Empty QR'); return; }
   const row = state.indexByItem.get(String(itemStr));
   if(!row){ showToast('查無此 ITEM · 請確認 / Item not found'); return; }
-  openPayModal(row); // 直接彈窗
+  openPayModal(row);
 }
 
 /* ===== (10) 重新整理 & 故障診斷 ===== */
@@ -749,19 +777,20 @@ $('btnDiagnose').addEventListener('click', async ()=>{
   }catch(e){ alert('Ping 失敗：可能網路/CORS/權限 · Failed to ping'); }
 });
 
-/* ===== ✅ (11) 新增：統計列點擊 → 清單 Modal ===== */
+/* ===== (11) 已繳費/未繳費清單（原本） ===== */
 const listBackdrop = $('listBackdrop');
 const listBody = $('listBody');
 const listTitle = $('listTitle');
 $('listClose').addEventListener('click', ()=> listBackdrop.style.display='none');
 listBackdrop.addEventListener('click', (e)=>{ if(e.target===listBackdrop) listBackdrop.style.display='none'; });
 
-// 綁定統計列點擊
 document.addEventListener('click', (e)=>{
   const paidChip = e.target.closest?.('.chip.paid');
   const unpaidChip = e.target.closest?.('.chip.unpaid');
+  const noteChip = e.target.closest?.('#chipNote');
   if(paidChip){ openListModal('paid'); }
   if(unpaidChip){ openListModal('unpaid'); }
+  if(noteChip){ openNoteModal(); } // NOTE 功能入口
 });
 
 function openListModal(kind){
@@ -780,15 +809,14 @@ function openListModal(kind){
   listBackdrop.style.display='flex';
 }
 
-// 嘗試多種欄位取時間，回傳毫秒
+// 時間抓取
 function getTimeValue(r){
   const cand = r.updatedAt || r.updated_at || r.updatePayStatus || r.updated || r.time || '';
   const t = Date.parse(cand);
   if(!isNaN(t)) return t;
-  // 若是數字字串
   const n = Number(cand);
-  if(!isNaN(n) && n>10_000_000_000) return n; // 可能是 ms
-  if(!isNaN(n) && n>0) return n*1000; // 可能是秒
+  if(!isNaN(n) && n>10_000_000_000) return n; // ms
+  if(!isNaN(n) && n>0) return n*1000; // sec
   return 0;
 }
 function fmtTime(ts){
@@ -837,7 +865,126 @@ function buildUnpaidTable(rows){
   return `<div class="tablewrap"><table class="table">${th}<tbody>${tb||'<tr><td colspan="4">無資料</td></tr>'}</tbody></table></div>`;
 }
 
-/* ===== (12) 啟動 & 錯誤攔截 ===== */
+/* ===== (12) NOTE 功能 ===== */
+const noteBackdrop = $('noteBackdrop');
+const noteTableWrap = $('noteTableWrap');
+$('noteClose').addEventListener('click', ()=> noteBackdrop.style.display='none');
+noteBackdrop.addEventListener('click', (e)=>{ if(e.target===noteBackdrop) noteBackdrop.style.display='none'; });
+
+$('noteOnlyUnpaid').addEventListener('change', renderNoteTable);
+$('noteSearchName').addEventListener('input', renderNoteTable);
+$('noteSearchIg').addEventListener('input', renderNoteTable);
+
+function openNoteModal(){
+  // 一次密碼驗證即可（前端簡易防護；真正保護請在 GAS 再驗一次）
+  if(!state.noteAuthed){
+    const p = prompt('請輸入 Note 密碼');
+    if(p===null) return;
+    if(p!==NOTE_PASSWORD){ showToast('密碼錯誤 / Wrong password'); return; }
+    state.noteAuthed = true;
+  }
+  renderNoteTable();
+  noteBackdrop.style.display='flex';
+}
+
+function renderNoteTable(){
+  if(!state.rows.length){ noteTableWrap.innerHTML = '<div class="leader-meta">尚未載入名單 / Not loaded</div>'; return; }
+  const onlyUnpaid = $('noteOnlyUnpaid').checked;
+  const qn = norm($('noteSearchName').value);
+  const qi = norm($('noteSearchIg').value);
+
+  let rows = state.rows.slice();
+  if(onlyUnpaid) rows = rows.filter(r=> norm(r.pay_status)!=='paid');
+  if(qn) rows = rows.filter(r=> norm(r.name||'').includes(qn));
+  if(qi) rows = rows.filter(r=> norm(r.ig||'').includes(qi));
+
+  // 排序：leader -> name
+  rows.sort((a,b)=> (a.leader||'').localeCompare(b.leader||'') || (a.name||'').localeCompare(b.name||''));
+
+  // 建構表格（flag/name/ig/leader 緊密）
+  const th = `<thead><tr>
+    <th class="note-tight">flag</th>
+    <th class="note-tight">name</th>
+    <th class="note-tight">ig</th>
+    <th class="note-tight">leader</th>
+    <th>繳費狀態</th>
+    <th>確認</th>
+    <th>繳費方式</th>
+    <th>備註</th>
+  </tr></thead>`;
+
+  const body = rows.map(r=>{
+    const item = String(r.item||'');
+    const paid = norm(r.pay_status)==='paid' ? '已繳費' : '未繳費';
+    const checked = r.confirm ? 'checked' : '';
+    const method = r.pay_method || '';
+    const note = r.note || '';
+    return `<tr data-item="${escapeHtml(item)}">
+      <td>${safe(r.flag||'')}</td>
+      <td class="note-tight">${safe(r.name||'')}</td>
+      <td class="note-tight">${safe(r.ig||'')}</td>
+      <td class="note-tight">${safe(r.leader||'')}</td>
+      <td>${paid}</td>
+      <td><input type="checkbox" class="note-checkbox" ${checked}></td>
+      <td>
+        <select class="note-select">
+          <option value=""></option>
+          <option value="銀行" ${method==='銀行'?'selected':''}>銀行</option>
+          <option value="LinePay" ${method==='LinePay'?'selected':''}>LinePay</option>
+          <option value="電子支付" ${method==='電子支付'?'selected':''}>電子支付</option>
+          <option value="現金" ${method==='現金'?'selected':''}>現金</option>
+        </select>
+      </td>
+      <td><input type="text" class="note-input" value="${escapeHtml(note)}" placeholder="輸入備註"></td>
+    </tr>`;
+  }).join('');
+
+  noteTableWrap.innerHTML = `<table class="table">${th}<tbody>${body||'<tr><td colspan="8">無資料</td></tr>'}</tbody></table>`;
+
+  // 事件委派：checkbox/select/input → 即時儲存
+  noteTableWrap.querySelector('tbody')?.addEventListener('change', handleNoteChange, { once:true });
+  noteTableWrap.querySelector('tbody')?.addEventListener('input', handleNoteInput, { once:true });
+}
+
+// input 輸入時稍微防抖
+let _noteInputTimer = null;
+function handleNoteInput(e){
+  clearTimeout(_noteInputTimer);
+  _noteInputTimer = setTimeout(()=> handleNoteChange(e), 250);
+}
+async function handleNoteChange(e){
+  const tr = e.target.closest('tr[data-item]');
+  if(!tr) return;
+  const item = tr.getAttribute('data-item');
+
+  const confirmEl = tr.querySelector('.note-checkbox');
+  const selectEl = tr.querySelector('.note-select');
+  const inputEl  = tr.querySelector('.note-input');
+
+  const confirmVal = !!(confirmEl && confirmEl.checked);
+  const methodVal  = selectEl ? selectEl.value : '';
+  const noteVal    = inputEl ? inputEl.value : '';
+
+  // 本地更新
+  const row = state.indexByItem.get(String(item));
+  if(row){
+    row.confirm = confirmVal;
+    row.pay_method = methodVal;
+    row.note = noteVal;
+  }
+
+  // 後端持久化（全域一致）
+  try{
+    const ok = await postMaybeOk({ action:'updateNote', item, confirm:confirmVal, pay_method:methodVal, note:noteVal });
+    if(!ok) throw new Error('SERVER_NOK');
+    showToast('已儲存註記 / Note saved');
+  }catch(err){
+    console.error(err);
+    showToast('儲存失敗 / Save failed');
+  }
+}
+
+/* ===== 啟動 & 錯誤攔截 ===== */
 window.addEventListener('error', (e)=>{
   try{ console.error('[GlobalError]', e.message, e.filename, e.lineno, e.colno, e.error); }catch(_){}
   try{ showToast('發生錯誤：' + (e.message || 'Script error')); }catch(_){}
@@ -850,4 +997,3 @@ fetchRoster();
 </script>
 </body>
 </html>
-
