@@ -216,6 +216,8 @@ button.primary:hover{filter:saturate(1.08);}
   max-width:42vw;
 }
 .note-filters label{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#9AA4AF;white-space:nowrap}
+/* ✅ 讓 NOTE 的 checkbox 穩定對齊 */
+.note-filters input[type="checkbox"]{width:16px;height:16px;vertical-align:middle}
 .nf-tri{
   border:1px solid #2b3244; background:#0f1117; color:#e5e7eb;
   padding:4px 8px; border-radius:8px; cursor:pointer; line-height:1; font-size:12px;
@@ -301,6 +303,9 @@ button.primary:hover{filter:saturate(1.08);}
   .note-filters input[type="text"]{width:100%; max-width:100%;}
   .note-small{margin-left:0}
 }
+
+/* ✅ 隱藏 NOTE 進階欄位的像素讀數（仍可調整） */
+#wNameV,#wIgV{display:none;}
 </style>
 </head>
 <body>
@@ -951,17 +956,25 @@ function fmtTime(ts){
   const d = new Date(ts);
   if(isNaN(d.getTime())) return '—';
   try{
-    return d.toLocaleString('zh-TW', { timeZone:'Asia/Taipei', year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    /* ✅ 時間顯示簡化為：10/21 19:33 */
+    return d.toLocaleString('zh-TW', {
+      timeZone:'Asia/Taipei',
+      month:'2-digit', day:'2-digit',
+      hour:'2-digit', minute:'2-digit'
+    });
   }catch(_){
-    return d.toISOString().replace('T',' ').slice(0,19);
+    return d.toISOString().replace('T',' ').slice(5,16); // 10-21 19:33 類似效果
   }
 }
 function safe(s){ return escapeHtml(s??''); }
 
 function buildPaidTable(rows){
   const th = `<thead><tr>
-      <th style="width:168px">時間</th>
-      <th>name</th><th>ig</th><th>leader</th><th>繳費狀態</th>
+      <th style="width:96px">時間</th>
+      <th style="width:120px">name</th>
+      <th style="width:120px">ig</th>
+      <th style="width:90px">leader</th>
+      <th style="width:70px">繳費狀態</th>
     </tr></thead>`;
   const tb = rows.map(r=>{
     const t = fmtTime(getTimeValue(r));
