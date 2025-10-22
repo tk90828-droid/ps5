@@ -1,4 +1,4 @@
-<!doctype html>  
+<!doctype html>   
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8" />
@@ -268,10 +268,9 @@ button.primary:hover{filter:saturate(1.08);}
 /* leader 改為固定寬（移除調整功能） */
 .table-note col.c-leader{width:80px}
 .table-note col.c-status{width:64px}
-/* 讓「確認」「方式」更靠緊：縮欄寬 */
-.table-note col.c-confirm{width:56px}
-.table-note col.c-method{width:96px}
-.table-note col.c-note{width:110px}
+/* 讓「確認」「方式」更靠緊：縮欄寬（⬅ 新：方式更貼近確認） */
+.table-note col.c-confirm{width:54px}
+.table-note col.c-method{width:80px}  /* 原 96px -> 80px */
 
 /* ✅ 欄位顯示/隱藏（套在 table 上的 class） */
 .table-note.hide-flag col.c-flag,
@@ -292,13 +291,16 @@ button.primary:hover{filter:saturate(1.08);}
 
 /* ✅ NOTE 繳費欄：表頭＋內文整欄置中 */
 .table-note thead th.status-head{ text-align:center; }
-.table-note td.status-cell{font-size:12px;white-space:nowrap;text-align:center}
+.table-note td.status-cell{font-size:12px;white-space:nowrap;text-align:center; vertical-align:middle;}
+/* ⬅ 新增：繳費欄圖示垂直置中修正 */
+.table-note td.status-cell .meta-icon{ display:flex; align-items:center; justify-content:center; height:100%; }
+.table-note td.status-cell svg{ display:block; }
 
-/* ✅ NOTE 確認/方式欄 padding 再縮 */
+/* ✅ NOTE 確認/方式欄 padding 再縮（貼近） */
 .table-note thead th:nth-child(6),
 .table-note tbody td:nth-child(6),
 .table-note thead th:nth-child(7),
-.table-note tbody td:nth-child(7){ padding-left:4px; padding-right:4px; }
+.table-note tbody td:nth-child(7){ padding-left:3px; padding-right:3px; }
 
 /* ✅ NOTE：IG 欄位顯示大寫 */
 .table-note tbody td:nth-child(3){ text-transform:uppercase; }
@@ -323,17 +325,20 @@ button.primary:hover{filter:saturate(1.08);}
 /* ✅ 隱藏 NOTE 進階欄位的像素讀數（仍可調整） */
 #wNameV,#wIgV{display:none;}
 
-/* ====== 清單（Paid/Unpaid）欄寬可調 ====== */
+/* ====== 清單（Paid/Unpaid）欄寬可調（滑桿） ====== */
 .table-list{table-layout:fixed; width:100%}
 .table-list col.c-time{width:96px}
-.table-list col.c-name{width:120px}
+.table-list col.c-name{width:var(--listNameW,120px)}   /* ⬅ 新增：name 可調 */
 .table-list col.c-ig{width:var(--listIgW,120px)}
 .table-list col.c-leader{width:var(--listLeaderW,90px)}
 .table-list col.c-status{width:70px}
 
-/* 清單用的微控條（沿用 NOTE 的 wctrl/wbtn 樣式） */
-#listCtrls{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:6px 0 8px;}
-#lIgV,#lLeaderV{display:none;}
+/* 清單滑桿控制區（改為三行拉 bar） */
+#listCtrls{display:flex; flex-direction:column; gap:6px; margin:6px 0 8px;}
+.wrow{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+.wrow label{font-size:12px; color:#9AA4AF; width:64px;}
+.wrow input[type="range"]{flex:1; min-width:160px;}
+.wrow .val{font-size:12px; color:#9AA4AF; width:56px; text-align:right;}
 
 /* NOTE 標題旁總數樣式 */
 .note-ok{ color:var(--ok); font-weight:900; margin-left:6px; }
@@ -453,23 +458,22 @@ button.primary:hover{filter:saturate(1.08);}
     <div id="listTitle" class="title2">清單</div>
     <div class="rb"></div>
 
-    <!-- 新增：清單欄寬控制（IG/Leader） -->
+    <!-- ⬇ 改為三條滑桿（name / ig / leader），各成一行 -->
     <div id="listCtrls">
-      <div class="wctrl">
-        <span class="note-tight">ig寬</span>
-        <div class="btncol">
-          <button id="lIgUp" class="wbtn" title="增加 ig 欄寬">▲</button>
-          <button id="lIgDown" class="wbtn" title="減少 ig 欄寬">▼</button>
-        </div>
-        <span id="lIgV" class="note-tight">120px</span>
+      <div class="wrow">
+        <label for="lNameRange">name 寬</label>
+        <input id="lNameRange" type="range" min="40" max="240" step="10">
+        <span id="lNameV" class="val">120px</span>
       </div>
-      <div class="wctrl">
-        <span class="note-tight">leader寬</span>
-        <div class="btncol">
-          <button id="lLeaderUp" class="wbtn" title="增加 leader 欄寬">▲</button>
-          <button id="lLeaderDown" class="wbtn" title="減少 leader 欄寬">▼</button>
-        </div>
-        <span id="lLeaderV" class="note-tight">90px</span>
+      <div class="wrow">
+        <label for="lIgRange">ig 寬</label>
+        <input id="lIgRange" type="range" min="40" max="240" step="10">
+        <span id="lIgV" class="val">120px</span>
+      </div>
+      <div class="wrow">
+        <label for="lLeaderRange">leader 寬</label>
+        <input id="lLeaderRange" type="range" min="40" max="240" step="10">
+        <span id="lLeaderV" class="val">90px</span>
       </div>
     </div>
 
@@ -545,8 +549,8 @@ const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyNE1rQ2UEzTyZv3nnn
 const PAY_PASSWORD = '05140714';
 /* ✅ 是否啟用送出時密碼驗證（暫時關閉就設 false；要再開啟改 true） */
 const ENABLE_PAY_PASSWORD = false;
-/* ✅ NOTE 密碼沿用 PAY_PASSWORD（可自行改成獨立常數） */
-const NOTE_PASSWORD = PAY_PASSWORD;
+/* ✅ NOTE 密碼改為獨立常數（預設 0327） */
+const NOTE_PASSWORD = '0327';
 
 /* ===== (2) 狀態 ===== */
 const state = {
@@ -558,7 +562,8 @@ const state = {
   /* NOTE 功能（預設欄寬） */
   nameW: 60,
   igW: 80,
-  /* 清單（Paid/Unpaid）欄寬 */
+  /* 清單（Paid/Unpaid）欄寬（滑桿三項） */
+  listNameW: 120,
   listIgW: 120,
   listLeaderW: 90,
   noteAuthed: false
@@ -990,7 +995,8 @@ function openListModal(kind){
     listTitle.textContent = `未繳費名單 / Unpaid List（${rows.length}）`;
     listBody.innerHTML = buildUnpaidTable(rows);
   }
-  applyListWidths(); // 依目前狀態套用欄寬
+  applyListWidths(); 
+  initListSliders();        /* ⬅ 新增：開窗後初始化滑桿 */
   listBackdrop.style.display='flex';
 }
 // 時間抓取
@@ -1011,7 +1017,7 @@ function fmtTime(ts){
     /* ✅ 時間顯示簡化為：10/21 19:33 */
     return d.toLocaleString('zh-TW', { timeZone:'Asia/Taipei', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
   }catch(_){
-    return d.toISOString().replace('T',' ').slice(5,16); // 10-21 19:33 類似效果
+    return d.toISOString().replace('T',' ').slice(5,16);
   }
 }
 function safe(s){ return escapeHtml(s??''); }
@@ -1055,25 +1061,25 @@ function buildUnpaidTable(rows){
   return `<div class="tablewrap"><table class="table table-list" id="unpaidTable">${colgroup}${th}<tbody>${tb||'<tr><td colspan="4">無資料</td></tr>'}</tbody></table></div>`;
 }
 
-/* 清單欄寬控制（與 NOTE 相同步幅） */
-function adjustListWidth(kind, delta){
-  const min=40, max=240, step=10;
-  if(kind==='ig'){ state.listIgW = Math.max(min, Math.min(max, state.listIgW + (delta>0?step:-step))); }
-  else { state.listLeaderW = Math.max(min, Math.min(max, state.listLeaderW + (delta>0?step:-step))); }
-  applyListWidths();
-}
+/* 清單欄寬套用（滑桿） */
 function applyListWidths(){
   document.querySelectorAll('.table-list').forEach(t=>{
+    t.style.setProperty('--listNameW', state.listNameW+'px');
     t.style.setProperty('--listIgW', state.listIgW+'px');
     t.style.setProperty('--listLeaderW', state.listLeaderW+'px');
   });
-  $('lIgV').textContent = state.listIgW+'px';
-  $('lLeaderV').textContent = state.listLeaderW+'px';
+  const nV = $('lNameV'); if(nV) nV.textContent = state.listNameW+'px';
+  const iV = $('lIgV');   if(iV) iV.textContent   = state.listIgW+'px';
+  const lV = $('lLeaderV'); if(lV) lV.textContent = state.listLeaderW+'px';
 }
-$('lIgUp')?.addEventListener('click', ()=>adjustListWidth('ig', +1));
-$('lIgDown')?.addEventListener('click', ()=>adjustListWidth('ig', -1));
-$('lLeaderUp')?.addEventListener('click', ()=>adjustListWidth('leader', +1));
-$('lLeaderDown')?.addEventListener('click', ()=>adjustListWidth('leader', -1));
+
+/* 初始化滑桿與事件（每次開清單視窗執行） */
+function initListSliders(){
+  const rN = $('lNameRange'), rI = $('lIgRange'), rL = $('lLeaderRange');
+  if(rN){ rN.value = state.listNameW; rN.oninput = (e)=>{ state.listNameW = +e.target.value; applyListWidths(); }; }
+  if(rI){ rI.value = state.listIgW;   rI.oninput = (e)=>{ state.listIgW   = +e.target.value; applyListWidths(); }; }
+  if(rL){ rL.value = state.listLeaderW; rL.oninput = (e)=>{ state.listLeaderW = +e.target.value; applyListWidths(); }; }
+}
 
 /* ===== (12) NOTE 功能 ===== */
 const noteBackdrop = $('noteBackdrop');
@@ -1130,7 +1136,6 @@ function openNoteModal(){
 function updateNoteConfirmCount(){
   const el = $('noteCount');
   if(!el) return;
-  // 以目前表格上的勾勾為準（更即時）；若表格未渲染則用 state
   const tbody = noteTableWrap.querySelector('tbody');
   let count = 0;
   if(tbody){
@@ -1172,13 +1177,11 @@ function renderNoteTable(){
   const showLeader = $('showLeader')?.checked !== false;
   const showStatus = $('showStatus')?.checked !== false;
 
-  // ✅ 使用 colgroup 鎖寬：name/ig 用 CSS 變數；leader 固定寬
   const colgroup = `<colgroup>
     <col class="c-flag"><col class="c-name"><col class="c-ig"><col class="c-leader">
     <col class="c-status"><col class="c-confirm"><col class="c-method"><col class="c-note">
   </colgroup>`;
 
-  // 表頭（繳費表頭置中）
   const th = `<thead><tr>
     <th class="note-tight">flag</th>
     <th class="note-tight">name</th>
@@ -1216,11 +1219,9 @@ function renderNoteTable(){
     </tr>`;
   }).join('');
 
-  // 組裝 table（帶入變數）
   const tableHtml = `<table class="table table-note" style="--nameW:${nameW}px;--igW:${igW}px">${colgroup}${th}<tbody>${body||'<tr><td colspan="8">無資料</td></tr>'}</tbody></table>`;
   noteTableWrap.innerHTML = tableHtml;
 
-  // 依勾選隱藏欄位
   const tableEl = noteTableWrap.querySelector('.table-note');
   tableEl.classList.toggle('hide-flag', !showFlag);
   tableEl.classList.toggle('hide-name', !showName);
@@ -1253,7 +1254,6 @@ async function saveNotes(){
     const methodVal = selectEl ? selectEl.value : '';
     const noteVal = inputEl ? inputEl.value : '';
 
-    // 與 state 比對，只送有變更的
     const row = state.indexByItem.get(String(item));
     if(!row) continue;
     const changed = (row.confirm !== confirmVal) || (row.pay_method !== methodVal) || (row.note !== noteVal);
@@ -1269,14 +1269,12 @@ async function saveNotes(){
     return;
   }
 
-  // 逐筆送出（不影響付款流程）
   const tasks = payloads.map(p => postMaybeOk({ action:'updateNote', ...p }));
   const results = await Promise.allSettled(tasks);
   let okCount = 0;
   results.forEach((r,i)=>{
     if(r.status==='fulfilled' && r.value){
       okCount++;
-      // 更新本地 state
       const p = payloads[i];
       const row = state.indexByItem.get(String(p.item));
       if(row){ row.confirm = p.confirm; row.pay_method = p.pay_method; row.note = p.note; }
